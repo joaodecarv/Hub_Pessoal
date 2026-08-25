@@ -1,6 +1,8 @@
 import {useState, useEffect} from 'react'
 import { getTransactions } from './api.js'
 import Money from './components/Money.jsx'
+import DateBR from './components/DateBR.jsx'
+
 
 function BancoTransactions(){
     const [transactions, setTransactions] = useState([])
@@ -15,7 +17,7 @@ function BancoTransactions(){
             <ul>
                 {transactions.map((tx) =>(
                     <li key={tx.id}>
-                        {tx.date} - {tx.description} (<Money cents = {tx.amount_cents} />)
+                        <DateBR iso={tx.date} /> - {tx.description} (<Money cents = {tx.amount_cents} />)
                     </li>
                 ))}
             </ul>
