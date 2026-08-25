@@ -1,3 +1,5 @@
 fastapi
 uvicorn[standard]
 python_dotenv
+feedparser
+google-genai

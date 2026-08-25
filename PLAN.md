@@ -1,9 +1,10 @@
 # Personal AI + Finance Hub — Build Plan
 
-> **Status:** Milestone 1 (Banco read-only view) **DONE** — verified end-to-end (incl.
-> shared-DB proof + responsive nav), cleaned up, and committed (git `main`, first commit
-> `c9c59b5`). Next: **Milestone 2** (RSS + Claude digest engine — needs an Anthropic API key).
-> See `CONTEXT.md` for exactly where we stopped and how to resume.
+> **Status:** Milestone 2 **backend DONE** — RSS + **Gemini** digest engine works end-to-end
+> (`POST /api/digest/refresh` + cached `GET /api/digest`, both verified in `/docs`). M1 (Banco
+> read-only view) was done earlier. Next: **Milestone 3** (digest pages in the React frontend).
+> **Note:** João chose **Gemini** (`google-genai`, `gemini-2.5-flash`, free tier) instead of
+> Anthropic — the only AI-specific module is `feeds/digest.py`. See `CONTEXT.md` to resume.
 > This is a **learning project** — João writes the code; Claude explains each line.
 
 ## What we're building
@@ -135,11 +136,15 @@ change appears), and the nav drops to a bottom tab bar under 600px. Cleanup done
 
 ## Later milestones (sketched)
 
-- **M2 — RSS + Claude digest engine (backend).** `feedparser` + `anthropic`. `feeds/sources.py`
-  (12 curated feeds), `feeds/fetcher.py` (fetch/dedupe/cap), `feeds/digest.py` (prompt with
-  caching on static parts, Haiku 4.5, returns Markdown). Cache last digest in SQLite.
-  `POST /api/digest/refresh?topic=ai|finance`. AI in English, finance in Portuguese.
-  *Requires an Anthropic API key.*
+- **M2 — RSS + Gemini digest engine (backend). ✅ DONE (2026-06-18).** `feedparser` +
+  `google-genai`. `feeds/sources.py` (8 curated, verified feeds — 4 finance PT, 4 AI EN),
+  `feeds/fetcher.py` (fetch/clean/dedupe by link/cap 40, truncate summaries to 300 chars),
+  `feeds/digest.py` (Gemini `gemini-2.5-flash`, returns Markdown; per-topic language map so
+  AI=English, finance=Portuguese; language rule must be first+emphatic in the prompt or it
+  reverts to English). `feeds/digest_store.py` caches last digest per topic in a **separate
+  writable** `hub.db` SQLite file (banco.db stays read-only). `feeds/router.py` →
+  `GET /api/digest?topic=` (cached, or null) + `POST /api/digest/refresh?topic=ai|finance`
+  (build+cache+return). Caching on static prompt parts skipped for now (Gemini free tier).
 - **M3 — Digest pages (frontend).** `AiNews.jsx`/`FinanceNews.jsx`: show cached digest
   instantly, "Refresh" button calls API and swaps in new summary, render Markdown. Greyscale.
 - **M4 — Hub landing + nav polish.** Home page with three entries + last-updated timestamps;

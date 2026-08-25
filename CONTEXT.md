@@ -52,15 +52,46 @@ Browser ──► React app (Vite, port 5173) ──fetch JSON──► FastAPI 
 
 ## ✅ Where we are right now (as of 2026-06-18)
 
-**Milestone 1 is DONE — plus all optional polish. Clean stopping point; nothing in progress.**
-Backend serves all four endpoints; the React app shows a styled, navigable, responsive view of
-the finances — dashboard (month summary + per-category spend) and a transactions page, switchable
-via a nav, themed to match Banco, with a phone bottom tab bar.
+**Milestone 2 BACKEND is DONE.** Clean stopping point; nothing in progress. The full RSS +
+**Gemini** digest engine works end-to-end and is verified in `/docs`. (M1 — the Banco read-only
+view, dashboard + transactions, responsive — was finished earlier and is unchanged.)
 
-**▶️ First thing next session:** start **Milestone 2** (RSS + Claude digest engine). Step 0 is
-confirming João has an **Anthropic API key** → put it in `backend/.env` as `ANTHROPIC_API_KEY=`
-(already gitignored), add `feedparser` + `anthropic` to `requirements.txt` and `pip install`.
-Then build, learning-style, one small step at a time. See "Next step when we resume" below.
+**Big decision this session:** João uses **Gemini instead of Anthropic** (free tier, no billing
+setup). Package `google-genai` (install `google-genai`, import `from google import genai`), model
+`gemini-2.5-flash`, key in `backend/.env` as `GEMINI_API_KEY=` (gitignored). Only `feeds/digest.py`
+is AI-specific — everything else is provider-agnostic. Prompt caching skipped for now.
+
+**What M2 added (all typed by João, learning-style):**
+- `backend/requirements.txt` — added `feedparser`, `google-genai`.
+- `backend/app/feeds/` (new package): `sources.py` (8 curated, **verified** feeds — finance:
+  Money Times, Brazil Journal, Seu Dinheiro, Estadão E-Investidor; AI: TechCrunch, VentureBeat,
+  Ars Technica, Hugging Face — `feeds_for(topic)` filters by topic), `fetcher.py`
+  (`fetch_topic(topic)`: loops feeds, cleans each entry to `{source,title,link,published,summary}`,
+  dedupes by link via a set, truncates summary to 300 chars, caps at 40), `digest.py`
+  (`build_digest(topic)`: fetch → format numbered article block → one prompt → Gemini → Markdown;
+  `TOPIC_LANGUAGE` map gives AI=English, finance=Brazilian Portuguese), `digest_store.py`
+  (SQLite cache in a **separate writable** `hub.db`: `init_db`/`save_digest`/`load_digest`,
+  `INSERT OR REPLACE` upsert keyed by topic), `router.py` (`GET /api/digest?topic=` → cached
+  dict or `null`; `POST /api/digest/refresh?topic=ai|finance` → build+cache+return; 400 on bad
+  topic). `__init__.py` marks the package.
+- `backend/app/config.py` — added `GEMINI_API_KEY` and `HUB_DB_PATH` (`backend/hub.db`).
+- `backend/app/main.py` — imports + `app.include_router(digest_router)`.
+- `.gitignore` — added `hub.db` (local digest cache, not committed).
+
+**Lessons worth remembering (teaching notes):**
+- A feed returning HTTP **200 is not proof it's valid RSS** — measure `len(feed.entries)`, not the
+  status. Two InfoMoney category feeds (`/mercados/feed/`, `/economia/feed/`) returned 0 entries
+  and were dropped; the homepage `/feed/` works but mixes in sports (firehose) — avoid it.
+- Gemini ignored a language instruction buried mid-prompt and replied in English; moving the
+  rule to **line 1 and making it emphatic** (and adding "output ONLY the digest, no preamble")
+  fixed it. Position + emphasis matter.
+- `python -c "..."` breaks on pasted **indentation** — use a single line with `;` separators.
+
+**▶️ First thing next session:** start **Milestone 3** (digest pages in the React frontend) —
+`AiNews.jsx` / `FinanceNews.jsx`: on load `GET /api/digest?topic=` to show the cached digest
+instantly; a "Refresh" button calls `POST /api/digest/refresh?topic=` and swaps in the new
+Markdown; render the Markdown (needs a small Markdown lib, e.g. `react-markdown`); show the
+`updated_at` timestamp; add nav entries. Keep the learning style, one small step at a time.
 
 **M1 closed out this session (2026-06-17):**
 - **Verification checklist passed:** all four `/api/banco/*` endpoints return real JSON;
