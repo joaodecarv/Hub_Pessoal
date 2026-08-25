@@ -34,7 +34,7 @@ function BancoDashboard(){
                 <ul>
                     {categories.map((cat) => (
                         <li key={cat.category_id}>
-                            {cat.category_name}: <Money cents={cat.total_cents} />
+                            {cat.category_name || "Sem categoria"}: <Money cents={cat.total_cents} />
                         </li>
                     ))}
                 </ul>
