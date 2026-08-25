@@ -19,21 +19,28 @@ function BancoDashboard(){
     const c = summary.current
 
     return (
-        <section>
-            <h2>{summary.month}/{summary.year}</h2>
-            <p>Income: <Money cents={c.income_cents} /></p>
-            <p>Expense: <Money cents={c.expense_cents} /></p>
-            <p>Savings: <Money cents={c.savings_cents} /></p>
-            <p>Net: <Money cents={c.net_cents} /></p>
-            <h3>Categories</h3>
-            <ul>
-                  {categories.map((cat) => (
-                      <li key={cat.category_id}>
-                          {cat.category_name}: <Money cents={cat.total_cents} />
-                      </li>
-                  ))}
-              </ul>
-        </section>
+        <div className="dashboard-grid">
+            <section>
+                <h2>{summary.month}/{summary.year}</h2>
+                <p>Income: <Money cents={c.income_cents} /></p>
+                <p>Expenses: <Money cents={c.expense_cents} /></p>
+                <p>Savings: <Money cents={c.savings_cents} /></p>
+                <p>Net: <Money cents={c.net_cents} /></p>
+
+            </section>
+
+            <section>
+                <h3>Categories</h3>
+                <ul>
+                    {categories.map((cat) => (
+                        <li key={cat.category_id}>
+                            {cat.category_name}: <Money cents={cat.total_cents} />
+                        </li>
+                    ))}
+                </ul>
+            </section>
+
+        </div>    
     )
 }
 

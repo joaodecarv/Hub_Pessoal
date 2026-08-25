@@ -62,7 +62,7 @@
     margin: 0 0 14px;
   }
 
-  sction h3{
+  section h3{
     color: var(--fg-muted);
     font-size: 11px;
     font-weight: 700;
@@ -100,4 +100,19 @@
       justify-content: space-between;
       padding: 6px 4px;
       color: var(--fg-muted);
+  }
+
+  .dashboard-grid{
+    display: grid;
+    gap: 16px;
+  }
+
+  .dashboard-grid section{
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 700px){
+    .dashboard-grid{
+        grid-template-columns: 1fr 1fr;
+    }
   }
