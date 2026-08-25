@@ -1,0 +1,103 @@
+:root {
+      /* Banco palette (copied from banco/ui/theme.py) */
+      --bg: #0b0c10;
+      --card: #14161c;
+      --card-top: #171922;
+      --card-bottom: #111319;
+      --card-border: #23262f;
+      --card-hover: #1a1d25;
+
+      --fg: #ffffff;
+      --fg-muted: #aab1c2;
+      --fg-dim: #6b7180;
+
+      --income: #9ECE6A;   /* green */
+      --expense: #F7768E;  /* red */
+      --savings: #7AA2F7;  /* blue */
+
+      --font-ui: "Manrope", "Inter", "Segoe UI", "Cantarell", sans-serif;
+
+      font-family: var(--font-ui);
+      font-size: 15px;
+      color: var(--fg);
+      background: var(--bg);
+  }
+
+  * {
+      box-sizing: border-box;
+  }
+
+  body {
+      margin: 0;
+  }
+
+  main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 24px 20px 96px;
+  }
+
+  h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      margin: 0 0 20px;
+  }
+
+
+/*-----------------------cards-----------------------------------*/
+
+
+  section{
+        background:linear-gradient(to bottom, var(--card-top), var(--card-bottom));
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+  }
+
+  section h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 14px;
+  }
+
+  sction h3{
+    color: var(--fg-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 20px 0 8px;
+  }
+
+
+
+  /* ---------- lists (categories + transactions) ---------- */
+
+  ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+  }
+
+  li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 4px;
+      border-bottom: 1px solid var(--card-border);
+  }
+
+  li:last-child {
+      border-bottom: none;
+  }
+
+  /* ---------- summary rows ---------- */
+
+  section p {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 4px;
+      color: var(--fg-muted);
+  }
