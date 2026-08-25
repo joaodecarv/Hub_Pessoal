@@ -13,6 +13,16 @@ def get_summary(year: int | None=None, month: int | None=None):
     today = date.today()
     return adapter.month_summary(year or today.year, month or today.month)
 
+@router.get("/trends")
+def get_trends(year: int | None=None, month: int | None=None, months: int = 6):
+    today = date.today()
+    return adapter.monthly_trends(year or today.year, month or today.month, months)
+
+@router.get("/fixed-variable")
+def get_fixed_variable(year: int | None=None, month: int | None=None):
+    today = date.today()
+    return adapter.fixed_vs_variable(year or today.year, month or today.month)
+
 @router.get("/transactions")
 def get_transactions(limit: int = 50, offset: int = 0):
     return adapter.recent_transactions(limit=limit, offset=offset)

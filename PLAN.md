@@ -1,11 +1,20 @@
 # Personal AI + Finance Hub — Build Plan
 
-> **Status:** Milestone 2 **backend DONE** — RSS + **Gemini** digest engine works end-to-end
-> (`POST /api/digest/refresh` + cached `GET /api/digest`, both verified in `/docs`). M1 (Banco
-> read-only view) was done earlier. Next: **Milestone 3** (digest pages in the React frontend).
+> **Status:** **UI overhaul + M3/M4 DONE (2026-06-20, uncommitted).** Fully restyled
+> (Claude-style) React frontend: sidebar→bottom-tab shell, Hub Home, dashboard with Recharts
+> (summary cards w/ deltas, category donut, 6-month expense-trend bars, fixed-vs-variable +
+> recent activity, month selector), and fixed/restyled news pages. **Theme shipped as
+> "Midnight Sepia" (warm dark, low-eye-strain for night/early-morning use)** — palette tokens
+> in `frontend/src/style.css` `:root`; a light "warm paper" variant was the starting point and a
+> day/night auto-switch remains an option. Two **new backend endpoints**
+> (`GET /api/banco/trends`, `GET /api/banco/fixed-variable`) built **test-first** — see
+> `backend/tests/` (8 passing, FastAPI TestClient over a seeded temp SQLite). Frontend builds +
+> lints clean; new endpoints smoke-tested against the real DB (match `bank.py` numbers).
+> **Deferred:** M5 (Tailscale + single-port prod build). See `PRD.md` for the spec.
 > **Note:** João chose **Gemini** (`google-genai`, `gemini-2.5-flash`, free tier) instead of
 > Anthropic — the only AI-specific module is `feeds/digest.py`. See `CONTEXT.md` to resume.
-> This is a **learning project** — João writes the code; Claude explains each line.
+> **Working mode:** originally a learning project (João types the code); for this overhaul phase
+> João asked Claude to write it directly. Resume teaching-style for genuinely new learning.
 
 ## What we're building
 
@@ -145,10 +154,14 @@ change appears), and the nav drops to a bottom tab bar under 600px. Cleanup done
   writable** `hub.db` SQLite file (banco.db stays read-only). `feeds/router.py` →
   `GET /api/digest?topic=` (cached, or null) + `POST /api/digest/refresh?topic=ai|finance`
   (build+cache+return). Caching on static prompt parts skipped for now (Gemini free tier).
-- **M3 — Digest pages (frontend).** `AiNews.jsx`/`FinanceNews.jsx`: show cached digest
-  instantly, "Refresh" button calls API and swaps in new summary, render Markdown. Greyscale.
-- **M4 — Hub landing + nav polish.** Home page with three entries + last-updated timestamps;
-  responsive bottom nav.
+- **M3 — Digest pages (frontend). ✅ DONE (2026-06-20).** Single `NewsPage.jsx` (topic prop)
+  shows the cached digest instantly, "Refresh" rebuilds via the API and swaps in the new
+  Markdown, with a friendly `updated_at` (`components/Timestamp.jsx`). Fixed the two M3 bugs
+  (the `setDigest` crash and the `news-digest`→`.digest` class mismatch) and restyled for the
+  light theme.
+- **M4 — Hub landing + nav polish. ✅ DONE (2026-06-20).** `HubHome.jsx` (default page) with
+  three entry cards: finance snapshot + AI/Finance digest timestamps. Persistent left sidebar
+  collapsing to a fixed bottom tab bar under 820px (`App.jsx` shell + `style.css`).
 - **M5 — iPhone access via Tailscale.** Reach the hub at `https://<host>.<tailnet>.ts.net`.
   For production, build React (`npm run build`) and serve it as static files from FastAPI
   (one server/port). Optional: `systemd --user` auto-start, PWA "Add to Home Screen."

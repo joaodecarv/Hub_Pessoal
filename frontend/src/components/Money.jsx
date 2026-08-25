@@ -1,12 +1,9 @@
-function Money ({cents}){
-    const reais = cents / 100
-    const formatted = reais.toLocaleString('pt-BR',{
+function Money({ cents, className }){
+    const formatted = (cents / 100).toLocaleString('pt-BR', {
         style: 'currency',
-        currency: 'BRL'
+        currency: 'BRL',
     })
-    return <span>{formatted}</span>
+    return <span className={className}>{formatted}</span>
 }
-
-
 
 export default Money

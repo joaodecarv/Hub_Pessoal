@@ -50,11 +50,50 @@ Browser ──► React app (Vite, port 5173) ──fetch JSON──► FastAPI 
 
 ---
 
-## ✅ Where we are right now (as of 2026-06-18)
+## ✅ Where we are right now (as of 2026-06-20)
 
-**Milestone 2 BACKEND is DONE.** Clean stopping point; nothing in progress. The full RSS +
-**Gemini** digest engine works end-to-end and is verified in `/docs`. (M1 — the Banco read-only
-view, dashboard + transactions, responsive — was finished earlier and is unchanged.)
+**UI overhaul + M3 + M4 are DONE (uncommitted).** The hub now has a fully restyled
+(Claude-style) React frontend and two new tested backend endpoints. See `PRD.md` for the spec
+that drove this work, and the "2026-06-20 UI overhaul" section below for the file-by-file detail.
+
+**Final theme = "Midnight Sepia" (warm dark), chosen for low-light early-morning/late-night use.**
+We started from the PRD's light "warm paper" palette, then João asked for a dark, low-eye-strain
+theme that doesn't look "AI-made" (no purple/neon/gradients). The shipped palette lives in
+`frontend/src/style.css` `:root` (warm near-black `--bg:#211E1A`, card `#2A2621`, text `#EAE2D4`,
+muted clay accent `#C5704A`, muted money colors) with the sidebar a darker `#1B1815`; chart
+colors mirror it in `frontend/src/chartTheme.js`. To revisit: a day/night auto-switch (light
+"warm paper" by day, this dark theme at night) was offered and is still on the table.
+
+**Working mode note:** this was originally a learning project (João types the code, Claude
+explains). For this overhaul João decided he'd "learned enough" and asked Claude to write it
+directly. Default back to the type-it-yourself style for genuinely new learning.
+
+**What's new this session (all written by Claude, then verified):**
+- **Backend (test-first):** `adapter.monthly_trends(year, month, months=6)` and
+  `adapter.fixed_vs_variable(year, month)` (thin wrappers over Banco's `ReportService`, still
+  read-only); `GET /api/banco/trends` + `GET /api/banco/fixed-variable` in `banco_view/router.py`
+  (current-month defaults like the others). First automated test suite in the project:
+  `backend/tests/` — `conftest.py` builds a temp SQLite from Banco's `SCHEMA`, seeds known
+  rows, monkeypatches `config.BANCO_DB_PATH`, yields a `TestClient`; **8 tests pass**. Dev deps
+  in `backend/requirements-dev.txt` (`pytest`, `httpx`). Smoke-tested against the real DB — the
+  numbers match `bank.py` (June expense R$478,55; fixed R$260,00 / variable R$218,55).
+- **Frontend (dark theme + charts):** `style.css` fully rewritten — app shell + the Midnight
+  Sepia palette described above (single source of truth in `:root`). New `App.jsx` shell
+  (sidebar → bottom-tab at ≤820px, 5 nav entries, default Home). `HubHome.jsx` (3 entry cards).
+  `BancoDashboard.jsx` rebuilt: `MonthSelector`, `StatCard` (×4 with deltas), `CategoryDonut` +
+  `TrendChart` (Recharts), `FixedVariableBar`, `RecentActivity`. `BancoTransactions.jsx`
+  restyled. `NewsPage.jsx` fixed (`setDigest` + `.digest`) and restyled. New `chartTheme.js`,
+  `components/Timestamp.jsx`. `recharts` added to `package.json`. `npm run build` + `eslint`
+  both clean.
+- **Remaining:** João to eyeball the theme in the browser; then commit (currently uncommitted).
+  Optional: day/night auto-switch. M5 (Tailscale + single-port prod build) still deferred.
+
+---
+
+### (historical) Milestone 2 BACKEND done (2026-06-18)
+
+The full RSS + **Gemini** digest engine works end-to-end and is verified in `/docs`. (M1 — the
+Banco read-only view, dashboard + transactions, responsive — was finished earlier.)
 
 **Big decision this session:** João uses **Gemini instead of Anthropic** (free tier, no billing
 setup). Package `google-genai` (install `google-genai`, import `from google import genai`), model
@@ -87,11 +126,11 @@ is AI-specific — everything else is provider-agnostic. Prompt caching skipped 
   fixed it. Position + emphasis matter.
 - `python -c "..."` breaks on pasted **indentation** — use a single line with `;` separators.
 
-**▶️ First thing next session:** start **Milestone 3** (digest pages in the React frontend) —
-`AiNews.jsx` / `FinanceNews.jsx`: on load `GET /api/digest?topic=` to show the cached digest
-instantly; a "Refresh" button calls `POST /api/digest/refresh?topic=` and swaps in the new
-Markdown; render the Markdown (needs a small Markdown lib, e.g. `react-markdown`); show the
-`updated_at` timestamp; add nav entries. Keep the learning style, one small step at a time.
+**▶️ First thing next session:** (1) run the app and eyeball the new theme (`uvicorn` +
+`npm run dev`); tweak palette/spacing to taste. (2) Commit the overhaul (still uncommitted) —
+add `recharts`/`react-markdown` are in `package.json`; `backend/requirements-dev.txt` is new.
+(3) Then **M5** — Tailscale iPhone access + single-port prod build (`npm run build` served by
+FastAPI). The historical M2/M3 pointers below are kept for reference.
 
 **M1 closed out this session (2026-06-17):**
 - **Verification checklist passed:** all four `/api/banco/*` endpoints return real JSON;
@@ -226,6 +265,13 @@ otherwise nothing pending — M1 + polish are complete.
 > `format_brl`/`format_date_br` logic (in `banco/ui/format.py`) for display formatting.
 
 ## How to start the dev environment
+
+**Easiest: `./start.sh` from the project root** launches both modules in one terminal
+(backend Uvicorn :8000 + frontend Vite :5173, logs prefixed `[hub]`); Ctrl+C once stops both
+cleanly. It loads nvm for the frontend automatically and fails early with a hint if `.venv` or
+`node_modules` are missing. Variants: `./start.sh backend` / `./start.sh frontend` for just one.
+
+To start the two modules **manually** instead:
 
 ```bash
 # Backend

@@ -2,8 +2,8 @@
 
 
 
-async function getJSON(path){
-    const response = await fetch(path)
+async function getJSON(path, options){
+    const response = await fetch(path, options)
     if(!response.ok){
         throw new Error(`API ${path} failed: ${response.status}`)   
     }
@@ -28,3 +28,22 @@ export function getCategories(year, month){
     return getJSON(`/api/banco/categories${params}`)
 }
 
+export function getTrends(year, month, months = 6){
+    const params = new URLSearchParams()
+    if (year && month){ params.set('year', year); params.set('month', month) }
+    params.set('months', months)
+    return getJSON(`/api/banco/trends?${params.toString()}`)
+}
+
+export function getFixedVariable(year, month){
+    const params = (year && month) ? `?year=${year}&month=${month}` : ''
+    return getJSON(`/api/banco/fixed-variable${params}`)
+}
+
+export function getDigest(topic){
+    return getJSON(`/api/digest?topic=${topic}`)
+}
+
+export function refreshDigest(topic){
+    return getJSON(`/api/digest/refresh?topic=${topic}`, {method: 'POST'})
+}

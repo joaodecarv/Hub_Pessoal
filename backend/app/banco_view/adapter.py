@@ -49,6 +49,45 @@ def _totals_to_dict(t)->dict:
         "net_cents": t.net_cents,
     }
     
+def _prev_year_month(year: int, month: int) -> tuple[int, int]:
+    """The (year, month) immediately before the given one (handles January)."""
+    return (year - 1, 12) if month == 1 else (year, month - 1)
+
+
+def monthly_trends(year: int, month: int, months: int = 6) -> list[dict]:
+    """Income/expense/savings/net for the last `months` months, ending at the
+    given month, oldest-first. Months with no transactions report zeros (not
+    gaps), because we ask Banco for every month in the window."""
+    walk = []
+    y, m = year, month
+    for _ in range(months):
+        walk.append((y, m))
+        y, m = _prev_year_month(y, m)
+    walk.reverse()  # oldest first
+
+    conn = _connect()
+    try:
+        report = services.ReportService(conn)
+        out = []
+        for yy, mm in walk:
+            t = report.monthly_totals(yy, mm)
+            out.append({"year": yy, "month": mm, **_totals_to_dict(t)})
+        return out
+    finally:
+        conn.close()
+
+
+def fixed_vs_variable(year: int, month: int) -> dict:
+    """Split the month's expenses into fixed vs variable (in cents). Banco resolves
+    each transaction's fixedness from its per-transaction override or its category."""
+    conn = _connect()
+    try:
+        fv = services.ReportService(conn).fixed_vs_variable(year, month)
+        return {"fixed_cents": fv.fixed_cents, "variable_cents": fv.variable_cents}
+    finally:
+        conn.close()
+
+
 def month_summary(year:int, month:int) -> dict:
     """Income/expense/savings/net for the given month AND the month before it.
     Returns cents (integers). Formatting to 'R$ 5.200,00' is the frontend's job."""
