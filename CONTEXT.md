@@ -160,12 +160,21 @@ static parts, Haiku 4.5, returns Markdown), cache the last digest in SQLite, and
 explain each line. (When wiring the Claude call, check the `claude-api` skill for current model
 ids/pricing/caching — don't answer from memory.)
 
-**Optional M1 polish (nice-to-have, not blocking M2):** prettify `tx.date` (`2026-05-28` →
-Brazilian format, mirroring Banco's `format_date_br` in `banco/ui/format.py`) the same way
-`Money` handles money; handle the blank "Sem categoria" name (a `null` `category_name`/
-`category_id`); consider a 2-column dashboard on wide screens (summary | categories). There are
-also two unused Vite starter files still tracked — `frontend/src/App.css` and
-`frontend/src/index.css` (we use `style.css` now) — safe to delete when convenient.
+**M1 polish — ✅ all done (2026-06-18):**
+- **Brazilian dates:** new `frontend/src/components/DateBR.jsx` (twin of `Money`) renders ISO
+  dates as `dd/mm/yyyy` via `toLocaleDateString('pt-BR')`, with a `+'T00:00:00'` suffix to dodge
+  the UTC off-by-one-day trap; used in `BancoTransactions.jsx`.
+- **"Sem categoria":** dashboard category name now `{cat.category_name || "Sem categoria"}`.
+- **2-column dashboard:** dashboard split into two `<section>` cards (summary | categories)
+  wrapped in `<div className="dashboard-grid">`; mobile-first CSS grid in `style.css` stacks on
+  phones, `grid-template-columns: 1fr 1fr` at `min-width:700px`. Also fixed a typo'd selector
+  (`sction h3` → `section h3`).
+- **Starter CSS removed:** deleted `App.css` (dead) and `index.css` (was still imported by
+  `main.jsx` and styling `#root`); ported the one wanted rule (`#root { text-align: center; }`)
+  into `style.css`, now the single source of truth.
+
+Remaining nice-to-haves (not done, not blocking): a 2-column layout could also apply elsewhere;
+otherwise nothing pending — M1 + polish are complete.
 
 > Teaching reminders: `${}` interpolation needs **backticks**, not quotes. Default import
 > (`import X from`) for `export default`; named import (`import { x } from`) must match the name.
