@@ -50,13 +50,28 @@ Browser ──► React app (Vite, port 5173) ──fetch JSON──► FastAPI 
 
 ---
 
-## ✅ Where we are right now (as of 2026-06-05)
+## ✅ Where we are right now (as of 2026-06-17)
 
-**Milestone 1 is FEATURE-COMPLETE (Steps 1–13).** Backend serves all four endpoints; the React
-app shows a styled, navigable, responsive view of the finances — dashboard (month summary +
-per-category spend) and a transactions page, switchable via a nav, themed to match Banco, with
-a phone bottom tab bar. **Verified visually end-to-end** (numbers match `bank.py`). Only the
-formal verification checklist + two cleanup TODOs remain before we call M1 "done."
+**Milestone 1 is DONE.** Backend serves all four endpoints; the React app shows a styled,
+navigable, responsive view of the finances — dashboard (month summary + per-category spend) and
+a transactions page, switchable via a nav, themed to match Banco, with a phone bottom tab bar.
+
+**M1 closed out this session (2026-06-17):**
+- **Verification checklist passed:** all four `/api/banco/*` endpoints return real JSON;
+  dashboard numbers match `bank.py`; **shared-DB proof confirmed** (edited a transaction in the
+  desktop `bank.py`, refreshed the web page, change appeared — proves we read the live DB);
+  responsive nav drops to a bottom tab bar under 600px.
+- **Cleanup done:** removed the temporary `/api/_debug/config` endpoint from `main.py` (and its
+  now-unused `from app import config` import); `main.py` now holds only the FastAPI/CORS/router
+  setup + `/api/health`.
+- **Git set up:** root `.gitignore` ignores `.venv/`, `.env`, `node_modules/`, `__pycache__/`,
+  `*.pyc`, and `backend/Banco/` (a leftover copy of Banco the app doesn't use — `config.py`'s
+  `BANCO_SRC_PATH` points at the real Banco at `/home/joao/Workspaces_VSCODE/Meus_Projetos/Banco`).
+  `git init`, branch renamed `master`→`main`, first commit `c9c59b5` (31 source files, no secrets).
+
+**Next: Milestone 2** (RSS + Claude digest engine — needs an Anthropic API key). See below.
+
+### (historical) earlier feature-complete note (2026-06-05)
 
 New since last session (Steps 11–13, all typed by João):
 
@@ -131,27 +146,26 @@ totals (R$ 140 + R$ 120) match `month_summary` expense (R$ 260).
 > `adapter.py` — cosmetic only (the path is added at runtime via `sys.path.insert`). Optional
 > fix: `.vscode/settings.json` → `python.analysis.extraPaths` pointing at the Banco root.
 
-## ▶️ Next step when we resume (close out Milestone 1)
+## ▶️ Next step when we resume (start Milestone 2)
 
-All 13 build steps are done; what's left is to **verify** and **clean up**, then M1 is finished.
+M1 is finished. Next is **Milestone 2 — RSS + Claude digest engine (backend)**. See `PLAN.md`
+"M2" for the shape: `feeds/sources.py` (~12 curated feeds), `feeds/fetcher.py`
+(fetch/dedupe/cap with `feedparser`), `feeds/digest.py` (Claude summary, prompt caching on
+static parts, Haiku 4.5, returns Markdown), cache the last digest in SQLite, and
+`POST /api/digest/refresh?topic=ai|finance` (AI in English, finance in Portuguese).
 
-1. **Run the M1 verification checklist** (see "Verification (Milestone 1)" in `PLAN.md`):
-   - Backend `/docs`: call each `/api/banco/*`, confirm real JSON.
-   - Frontend at `:5173`: dashboard summary + categories and the transactions page match
-     `bank.py`.
-   - **Shared-DB proof (the important one):** edit a transaction in the desktop `bank.py`,
-     refresh the web page, confirm the change shows up — proves we read the live DB.
-   - **Responsive:** shrink the browser under 600px; confirm the nav drops to a bottom tab bar.
-2. **Cleanup TODOs (see the section below):** remove the temporary `GET /api/_debug/config`
-   endpoint from `backend/app/main.py`; set up git + a `.gitignore` for `.venv/`, `.env`,
-   `node_modules/`.
-3. **Optional polish (nice-to-have, not blocking):** prettify `tx.date` (`2026-05-28` →
-   Brazilian format, mirroring Banco's `format_date_br` in `banco/ui/format.py`) the same way
-   `Money` handles money; handle the blank "Sem categoria" name (a `null` `category_name`/
-   `category_id`); consider a 2-column dashboard on wide screens (summary | categories).
+**Before starting M2:** João needs an **Anthropic API key** in `backend/.env` as
+`ANTHROPIC_API_KEY=...` (already `.gitignore`d). Add `feedparser` and `anthropic` to
+`requirements.txt` and `pip install` them. Keep the learning style: one small runnable step,
+explain each line. (When wiring the Claude call, check the `claude-api` skill for current model
+ids/pricing/caching — don't answer from memory.)
 
-Then we're clear to start **Milestone 2** (RSS + Claude digest engine — needs an Anthropic API
-key; see `PLAN.md`).
+**Optional M1 polish (nice-to-have, not blocking M2):** prettify `tx.date` (`2026-05-28` →
+Brazilian format, mirroring Banco's `format_date_br` in `banco/ui/format.py`) the same way
+`Money` handles money; handle the blank "Sem categoria" name (a `null` `category_name`/
+`category_id`); consider a 2-column dashboard on wide screens (summary | categories). There are
+also two unused Vite starter files still tracked — `frontend/src/App.css` and
+`frontend/src/index.css` (we use `style.css` now) — safe to delete when convenient.
 
 > Teaching reminders: `${}` interpolation needs **backticks**, not quotes. Default import
 > (`import X from`) for `export default`; named import (`import { x } from`) must match the name.
@@ -180,7 +194,7 @@ npm run dev
 # → open http://localhost:5173  (proxies /api → :8000, so keep the backend running too)
 ```
 
-## Cleanup TODOs (don't forget)
+## Cleanup TODOs — ✅ all done (2026-06-17)
 
-- Remove the temporary `GET /api/_debug/config` endpoint before "finishing" Milestone 1.
-- When git is set up: add a `.gitignore` for `.venv/`, `.env`, and `node_modules/`.
+- ~~Remove the temporary `GET /api/_debug/config` endpoint.~~ Done (and its unused import).
+- ~~Set up git + a `.gitignore` for `.venv/`, `.env`, `node_modules/`.~~ Done (first commit `c9c59b5`).

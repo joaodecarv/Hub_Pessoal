@@ -1,7 +1,9 @@
 # Personal AI + Finance Hub — Build Plan
 
-> **Status:** Milestone 1 (Banco read-only view) **feature-complete** — only verification
-> + cleanup left. See `CONTEXT.md` for exactly where we stopped and how to resume.
+> **Status:** Milestone 1 (Banco read-only view) **DONE** — verified end-to-end (incl.
+> shared-DB proof + responsive nav), cleaned up, and committed (git `main`, first commit
+> `c9c59b5`). Next: **Milestone 2** (RSS + Claude digest engine — needs an Anthropic API key).
+> See `CONTEXT.md` for exactly where we stopped and how to resume.
 > This is a **learning project** — João writes the code; Claude explains each line.
 
 ## What we're building
@@ -124,8 +126,12 @@ transactions, served by our own API.
 
 **Done when:** the React app shows balances/transactions matching `bank.py`; editing a
 transaction in the desktop app and refreshing the web page reflects the change.
-**Remaining for "done":** run the verification checklist (esp. the shared-DB proof + phone
-width) and the cleanup TODOs (remove `/api/_debug/config`; add `.gitignore`).
+**✅ DONE (2026-06-17):** verification checklist passed — all four endpoints return real JSON,
+dashboard numbers match `bank.py`, shared-DB proof confirmed (edit in `bank.py` → refresh →
+change appears), and the nav drops to a bottom tab bar under 600px. Cleanup done: removed
+`/api/_debug/config` (and its now-unused `config` import) from `main.py`; added root
+`.gitignore` (`.venv/`, `.env`, `node_modules/`, `__pycache__/`, `*.pyc`, `backend/Banco/`);
+`git init` + first commit `c9c59b5` on `main`.
 
 ## Later milestones (sketched)
 
