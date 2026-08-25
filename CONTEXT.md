@@ -50,11 +50,17 @@ Browser ──► React app (Vite, port 5173) ──fetch JSON──► FastAPI 
 
 ---
 
-## ✅ Where we are right now (as of 2026-06-17)
+## ✅ Where we are right now (as of 2026-06-18)
 
-**Milestone 1 is DONE.** Backend serves all four endpoints; the React app shows a styled,
-navigable, responsive view of the finances — dashboard (month summary + per-category spend) and
-a transactions page, switchable via a nav, themed to match Banco, with a phone bottom tab bar.
+**Milestone 1 is DONE — plus all optional polish. Clean stopping point; nothing in progress.**
+Backend serves all four endpoints; the React app shows a styled, navigable, responsive view of
+the finances — dashboard (month summary + per-category spend) and a transactions page, switchable
+via a nav, themed to match Banco, with a phone bottom tab bar.
+
+**▶️ First thing next session:** start **Milestone 2** (RSS + Claude digest engine). Step 0 is
+confirming João has an **Anthropic API key** → put it in `backend/.env` as `ANTHROPIC_API_KEY=`
+(already gitignored), add `feedparser` + `anthropic` to `requirements.txt` and `pip install`.
+Then build, learning-style, one small step at a time. See "Next step when we resume" below.
 
 **M1 closed out this session (2026-06-17):**
 - **Verification checklist passed:** all four `/api/banco/*` endpoints return real JSON;
