@@ -30,6 +30,10 @@
   body {
       margin: 0;
   }
+  
+  #root{
+    text-align: center;
+  }
 
   main {
       max-width: 760px;
