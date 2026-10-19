@@ -31,3 +31,16 @@ def get_transactions(limit: int = 50, offset: int = 0):
 def get_categories(year: int | None=None, month: int | None=None):
     today = date.today()
     return adapter.categories_with_totals(year or today.year, month or today.month)
+
+@router.get("/balances")
+def get_balances():
+    return adapter.account_balances()
+
+@router.get("/goals")
+def get_goals():
+    return adapter.goals_progress()
+
+@router.get("/top-expenses")
+def get_top_expenses(year: int | None=None, month: int | None=None, limit: int = 5):
+    today = date.today()
+    return adapter.top_expenses(year or today.year, month or today.month, limit)

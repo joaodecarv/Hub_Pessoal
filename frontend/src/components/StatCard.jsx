@@ -1,17 +1,15 @@
-import Money from './Money.jsx'
-
-// One headline figure with an optional vs-previous-month delta.
-// invertDelta=true means "up is bad" (used for Expenses).
-function StatCard({ label, cents, valueClass, deltaCents, invertDelta }){
-    let delta = null
-    if (deltaCents !== undefined && deltaCents !== null){
-        const up = deltaCents > 0
+// One headline figure with a vs-previous-month delta, colored by meaning:
+// invertDelta=true means "up is bad" (Despesas). formatDelta defaults to format.
+function StatCard({ label, value, delta, format, formatDelta = format, valueClass, invertDelta, prevLabel, large }){
+    let deltaEl = null
+    if (delta !== undefined && delta !== null){
+        const up = delta > 0
         const good = invertDelta ? !up : up
-        const arrow = deltaCents === 0 ? '–' : up ? '↑' : '↓'
-        const cls = deltaCents === 0 ? '' : good ? 'delta-up' : 'delta-down'
-        delta = (
+        const cls = delta === 0 ? '' : good ? 'delta-up' : 'delta-down'
+        const arrow = delta === 0 ? '' : up ? '▲ ' : '▼ '
+        deltaEl = (
             <span className={`stat-delta ${cls}`}>
-                {arrow} <Money cents={Math.abs(deltaCents)} /> vs last
+                {arrow}{formatDelta(Math.abs(delta))} vs {prevLabel}
             </span>
         )
     }
@@ -19,8 +17,8 @@ function StatCard({ label, cents, valueClass, deltaCents, invertDelta }){
     return (
         <div className="card stat">
             <span className="stat-label">{label}</span>
-            <span className={`stat-value ${valueClass || ''}`}><Money cents={cents} /></span>
-            {delta}
+            <span className={`stat-value${large ? ' stat-value-lg' : ''} ${valueClass || ''}`}>{format(value)}</span>
+            {deltaEl}
         </div>
     )
 }

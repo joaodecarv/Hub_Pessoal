@@ -1,5 +1,7 @@
+import calendar
 import sqlite3
 import sys
+from datetime import date
 from app import config
 
 if str(config.BANCO_SRC_PATH) not in sys.path:
@@ -156,6 +158,70 @@ def categories_with_totals(year:int, month:int)->list[dict]:
                 "total_cents": s.total_cents,
             }
             for s in slices
+        ]
+    finally:
+        conn.close()
+
+
+def account_balances() -> list[dict]:
+    """Each account with its balance = sum of all its transactions, signed the way
+    Banco signs them (expense negative; income and savings positive).
+
+    Banco stores no opening balance, so this only matches the real bank if the
+    opening balance was entered as a transaction (see PLAN.md, "Future: desktop app")."""
+    conn = _connect()
+    try:
+        tx_repo = repositories.TransactionRepository(conn)
+        out = []
+        for a in repositories.AccountRepository(conn).list():
+            balance = sum(
+                -t.amount_cents if t.kind == TransactionKind.EXPENSE else t.amount_cents
+                for t in tx_repo.list(account_id=a.id)
+            )
+            out.append({"id": a.id, "name": a.name, "kind": a.kind.value, "balance_cents": balance})
+        return out
+    finally:
+        conn.close()
+
+
+def goals_progress() -> list[dict]:
+    """Active goals with saved-vs-target progress. Banco's GoalProgress computes the
+    pace (on_track); we only flatten it, with the deadline as an ISO string or None."""
+    conn = _connect()
+    try:
+        return [
+            {
+                "id": g.goal_id,
+                "name": g.name,
+                "target_cents": g.target_cents,
+                "saved_cents": g.saved_cents,
+                "deadline": g.deadline.isoformat() if g.deadline else None,
+                "days_remaining": g.days_remaining,
+                "achieved": g.achieved,
+                "on_track": g.on_track,
+            }
+            for g in services.GoalService(conn).list_progress()
+        ]
+    finally:
+        conn.close()
+
+
+def top_expenses(year: int, month: int, limit: int = 5) -> list[dict]:
+    """The month's largest expense transactions, largest first."""
+    last_day = calendar.monthrange(year, month)[1]
+    conn = _connect()
+    try:
+        txs = repositories.TransactionRepository(conn).list(
+            date_from=date(year, month, 1),
+            date_to=date(year, month, last_day),
+            kind=TransactionKind.EXPENSE,
+            sort=SortBy.AMOUNT_DESC,
+            limit=limit,
+        )
+        return [
+            {"id": t.id, "date": t.date.isoformat(), "description": t.description,
+             "amount_cents": t.amount_cents}
+            for t in txs
         ]
     finally:
         conn.close()

@@ -3,8 +3,7 @@ import { getTransactions } from '../api.js'
 import Money from './Money.jsx'
 import DateBR from './DateBR.jsx'
 
-const kindClass = (kind) =>
-    kind === 'income' ? 'income' : kind === 'expense' ? 'expense' : 'savings'
+const KIND_CLASS = { income: 'income', expense: 'expense', savings: 'savings' }
 
 function RecentActivity({ limit = 6 }){
     const [txs, setTxs] = useState([])
@@ -13,7 +12,7 @@ function RecentActivity({ limit = 6 }){
         getTransactions(limit, 0).then(setTxs)
     }, [limit])
 
-    if (!txs.length) return <p className="note">No transactions.</p>
+    if (!txs.length) return <p className="note">Nenhuma transação.</p>
 
     return (
         <ul className="rows">
@@ -22,7 +21,8 @@ function RecentActivity({ limit = 6 }){
                     <span className="row-main">
                         {tx.description} <span className="row-sub">· <DateBR iso={tx.date} /></span>
                     </span>
-                    <Money cents={tx.amount_cents} className={kindClass(tx.kind)} />
+                    <Money cents={tx.kind === 'expense' ? -tx.amount_cents : tx.amount_cents}
+                           signed className={KIND_CLASS[tx.kind]} />
                 </li>
             ))}
         </ul>

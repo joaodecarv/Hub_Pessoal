@@ -1,8 +1,9 @@
-// Shared chart colors so Recharts SVGs match the warm-paper CSS palette.
-export const CHART_COLORS = [
-  "#C15F3C", "#D69A5C", "#8A9A5B", "#4A6FA5",
-  "#9C6B8E", "#6B8E8A", "#C7A15B", "#7E8AA2",
-]
-export const AXIS = "#B3A893"
-export const GRID = "#3A342C"
-export const BAR = "#C5704A"
+// Chart colors as CSS variables so Recharts SVGs follow the active theme (see DESIGN.md).
+// Donut slots never use red/green, which are reserved for income/expense.
+export const CHART_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"]
+export const UNCATEGORIZED = "var(--text-3)"
+export const OTHER = "var(--border-strong)"
+export const AXIS = "var(--text-3)"
+export const GRID = "var(--border)"
+export const BAR = "var(--border-strong)"
+export const BAR_SELECTED = "var(--text)"

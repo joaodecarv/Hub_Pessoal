@@ -40,6 +40,18 @@ export function getFixedVariable(year, month){
     return getJSON(`/api/banco/fixed-variable${params}`)
 }
 
+export function getBalances(){
+    return getJSON(`/api/banco/balances`)
+}
+
+export function getGoals(){
+    return getJSON(`/api/banco/goals`)
+}
+
+export function getTopExpenses(year, month, limit = 5){
+    return getJSON(`/api/banco/top-expenses?year=${year}&month=${month}&limit=${limit}`)
+}
+
 export function getDigest(topic){
     return getJSON(`/api/digest?topic=${topic}`)
 }

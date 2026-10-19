@@ -3,6 +3,7 @@ import HubHome from './HubHome.jsx'
 import BancoDashboard from './BancoDashboard.jsx'
 import BancoTransactions from './BancoTransactions.jsx'
 import NewsPage from './NewsPage.jsx'
+import ThemeToggle from './components/ThemeToggle.jsx'
 
 const NAV = [
     { id: 'home', label: 'Home', icon: '◇' },
@@ -31,6 +32,7 @@ function App(){
                         </button>
                     ))}
                 </nav>
+                <ThemeToggle />
             </aside>
 
             <main className="content">

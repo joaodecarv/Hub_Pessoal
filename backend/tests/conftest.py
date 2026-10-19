@@ -53,6 +53,12 @@ def _seed(db_path):
             "VALUES (?,?,?,?,1,?)",
             SEED_TRANSACTIONS,
         )
+        # A goal funded by the Feb savings transaction (id 5), with no deadline.
+        conn.execute(
+            "INSERT INTO goals (id, name, target_cents, created_at) "
+            "VALUES (1, 'Reserva', 60000, '2026-01-01 00:00:00')"
+        )
+        conn.execute("INSERT INTO goal_contributions (goal_id, transaction_id) VALUES (1, 5)")
         conn.commit()
     finally:
         conn.close()

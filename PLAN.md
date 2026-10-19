@@ -186,6 +186,18 @@ call if nothing new. The Banco view makes **zero** AI calls.
 Writing to Banco from the web (read-only only); authentication (Tailscale gates access);
 scheduled/automatic digest refreshes; push notifications; a settings UI to manage feeds.
 
+## Future: desktop app with write access
+
+João wants to later turn the Hub into a desktop app that can **edit** data — transactions,
+accounts/banks, etc. — instead of only reading Banco. Today's read-only limits that this
+must revisit (decided 2026-10-18):
+
+- **Account balance is computed, not stored.** Banco's `accounts` table has no opening
+  balance, so the Hub's "saldo por conta" = sum of all of that account's transactions. It
+  only matches the real bank if the opening balance was entered as a transaction. A
+  write-capable app should add an opening balance (or a reconciliation/adjustment entry).
+- Every write must go through Banco's own repositories/services, not raw SQL from the Hub.
+
 ---
 *Previous server-rendered (Jinja + HTMX) design was superseded on 2026-06-02 when João chose
 a FastAPI-JSON + React split and a learning-by-doing approach.*

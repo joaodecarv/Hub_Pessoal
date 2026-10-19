@@ -1,5 +1,5 @@
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { MONTHS_PT } from '../months.js'
 
 function MonthSelector({ year, month, onChange }){
     function shift(delta){
@@ -12,9 +12,9 @@ function MonthSelector({ year, month, onChange }){
 
     return (
         <div className="month-select">
-            <button onClick={() => shift(-1)} aria-label="Previous month">‹</button>
-            <span className="ms-label">{MONTHS[month - 1]} / {year}</span>
-            <button onClick={() => shift(1)} aria-label="Next month">›</button>
+            <button onClick={() => shift(-1)} aria-label="Mês anterior"><ChevronLeft size={18} aria-hidden="true" /></button>
+            <span className="ms-label" aria-live="polite">{MONTHS_PT[month - 1]} / {year}</span>
+            <button onClick={() => shift(1)} aria-label="Próximo mês"><ChevronRight size={18} aria-hidden="true" /></button>
         </div>
     )
 }
