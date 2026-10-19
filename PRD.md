@@ -7,6 +7,10 @@
 > Claude writes the code directly. `PLAN.md` / `CONTEXT.md` stay the source of truth and get
 > updated as work lands.
 >
+> **⚠️ Superseded visually (2026-10-18):** the theme, dashboard layout and news page are being
+> redone per `DESIGN.md` (monochrome finance, light/dark toggle, Portuguese UI, structured news
+> cards). This PRD remains the record of the June overhaul's scope; see `CONTEXT.md` for status.
+>
 > **⚠️ Theme update (post-design):** this PRD specifies a *light* "warm paper" theme, but during
 > the build João asked for a low-eye-strain theme for early-morning/late-night use. **Shipped
 > theme = "Midnight Sepia" (warm dark)** — same warm/clay character, dark surfaces. Everything

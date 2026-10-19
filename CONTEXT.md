@@ -12,12 +12,13 @@ A personal **hub website** that runs on João's own PC and gathers three things:
 
 1. **My finances** — a read-only web view of the existing **Banco** desktop app
    (`/home/joao/Workspaces_VSCODE/Meus_Projetos/Banco`).
-2. **Brazilian financial-market news** — RSS feeds summarized by Claude (later).
-3. **AI-industry news** — RSS feeds summarized by Claude (later).
+2. **Brazilian financial-market news** — RSS feeds summarized by Gemini.
+3. **AI-industry news** — RSS feeds summarized by Gemini.
 
-**This is a learning project.** João is new to web development. The working style is:
+**This is a learning project.** João is new to web development. The default working style is:
 Claude explains each line and concept; **João types the code himself** and runs it, one
-small runnable step at a time. Don't dump whole files to generate — teach and let João build.
+small runnable step at a time. (Paused since the June 2026 overhaul — Claude writes the code
+directly for the redesign; see "Where we are right now".)
 
 ## How it works (architecture)
 
@@ -36,7 +37,7 @@ Browser ──► React app (Vite, port 5173) ──fetch JSON──► FastAPI 
 
 - **Backend** (`backend/`): Python + FastAPI. Imports Banco's own modules as a library to
   read finance data and returns it as **JSON**. Never writes to the DB.
-- **Frontend** (`frontend/`, not created yet): React + Vite. Calls the backend's `/api/*`
+- **Frontend** (`frontend/`): React + Vite. Calls the backend's `/api/*`
   endpoints and renders the data. This is "what you see."
 - The desktop `bank.py` is **never modified** and keeps full read/write access to the same
   SQLite file. The hub only reads.
@@ -44,13 +45,106 @@ Browser ──► React app (Vite, port 5173) ──fetch JSON──► FastAPI 
 ## Tech stack
 
 - Backend: **Python 3.12**, **FastAPI**, **Uvicorn**, **python-dotenv**.
-- Frontend: **React + Vite** (plain JS, `.jsx`), **Node 24** via **nvm** (`~/.nvm`, no venv).
+- Frontend: **React + Vite** (plain JS, `.jsx`), **Recharts**, **lucide-react**, **Node 24** via **nvm** (`~/.nvm`, no venv).
 - Data: shared **SQLite** at `~/.local/share/banco/banco.db`.
 - Phone access (later): **Tailscale**.
 
 ---
 
-## ✅ Where we are right now (as of 2026-06-20)
+## ✅ Where we are right now (as of 2026-10-19)
+
+**Monochrome finance redesign in progress — tokens/theme + dashboard DONE and committed
+(`1bfdeea`); news page NOT started.** Decisions came from a graphic-designer + grilling session
+on 2026-10-18; the visual spec is **`DESIGN.md`** (single source of truth for palette, type,
+layout and component specs, including the news card and glossary). It supersedes the
+"Midnight Sepia" theme and the light "warm paper" theme in `PRD.md`.
+
+**Working mode:** Claude writes the code directly (teaching still paused, as in the June overhaul).
+
+### Decisions locked in (2026-10-18)
+
+- **Look:** XP/Rico-style, "precise, calm, trustworthy". **Monochrome palette** — UI is
+  black/white/gray; color only encodes money/status (green income, red expense, blue savings,
+  amber warning). Buttons/active nav/selected month use the text color, never a hue.
+- **Themes:** light + dark, switched **only by a manual button** (sidebar footer; floating
+  top-right icon on phones). Saved in `localStorage` (`hub-theme`), applied as
+  `<html data-theme>` by an inline script in `index.html` (no flash). Default: dark.
+- **Font:** Inter (Google Fonts) with tabular numbers. **UI language: Portuguese** (digests keep
+  AI = English, Finance = Portuguese).
+- **Structure kept:** sidebar → bottom tab bar on phones; pages Home (kept, to be restyled),
+  Dashboard, Transações, AI News, Finance News.
+- **Dashboard:** visual redesign **plus** new widgets (done — see below).
+- **Account balance** = sum of all of the account's transactions (Banco has no opening balance).
+  Future write-capable desktop app noted in `PLAN.md` ("Future: desktop app with write access").
+
+### Done this session (committed in `1bfdeea`)
+
+- **Tokens/theme:** `style.css` `:root`/`[data-theme]` blocks hold both palettes (contrast-checked
+  against WCAG AA); `components/ThemeToggle.jsx`; `chartTheme.js` now exports CSS variables so
+  Recharts follows the theme; `lucide-react` added.
+- **Backend (test-first, read-only):** `adapter.account_balances()`, `goals_progress()`,
+  `top_expenses(year, month, limit)` + routes `GET /api/banco/balances`, `/goals`,
+  `/top-expenses`. `tests/conftest.py` seed gained a goal; new
+  `tests/test_banco_dashboard_widgets.py`. **12 tests pass.**
+- **Dashboard** (`BancoDashboard.jsx`, 12-col `.dash` grid): KPIs Saldo do mês / Receitas /
+  Despesas / Taxa de poupança with meaning-colored ▲/▼ deltas "vs <mês>"; 6-month trend with the
+  selected month highlighted; donut = top 4 categories + "Outros" ("Sem categoria" in gray);
+  Fixas vs variáveis; Maiores despesas do mês; Saldo por conta; Metas; Atividade recente.
+  New components: `AccountBalances`, `Goals`, `TopExpenses`; shared `months.js` (`MONTHS_PT`);
+  `Money` now uses a real minus sign `−` and an optional `signed` prop.
+- Verified in the browser (desktop + phone width, both themes) against the real DB. **Not seen
+  with real data:** the Metas card (João's DB has no active goals) — covered only by the API test.
+
+### Also committed (docs commit after `1bfdeea`)
+
+- `README.md` "how to run" instructions; `npm audit fix` on `frontend/package-lock.json`
+  (0 vulnerabilities); this `CONTEXT.md` update; "superseded" note at the top of `PRD.md`.
+  Working tree clean at the end of the 2026-10-19 session.
+
+### ▶️ Next: the news page (decided, not built)
+
+Backend (`backend/app/feeds/`):
+1. **Structured digest:** Gemini returns **JSON** instead of one Markdown blob — a list of
+   **25 news items per topic**, each `{category, header, summary (1–2 sentences), link, source}`.
+   `digest_store` saves the JSON (the `markdown` column/shape changes — migrate or recreate
+   `hub.db`, it's only a cache). `NewsPage` stops using `react-markdown`.
+2. **Fixed categories** (Gemini must pick one):
+   - Finance: *Mercado e macro* (bolsa, juros e inflação, câmbio, commodities, economia global,
+     política econômica), *Negócios corporativos* (fusões e aquisições, acordos/parcerias,
+     resultados, IPOs/captações), *Cripto*, *Finanças pessoais*.
+   - AI: *Tecnologia* (modelos, pesquisa, ferramentas, hardware/chips), *Negócios de AI*
+     (rodadas, aquisições, parcerias). No regulation category.
+   - João wants news that build market/world knowledge (M&A, deals between companies).
+3. **Images:** RSS image (`media_content` / `media_thumbnail` / image `enclosures`) → else fetch the
+   article's `og:image` (only for the 25 chosen items, short timeout) → else the category icon.
+   Measured 2026-10-18: only ~20% of RSS items carry an image (Ars Technica 10/10, Brazil Journal
+   5/10, Seu Dinheiro 1/10, the rest 0).
+4. **Sources:** add **InfoMoney** (BR) and **CNBC Business + World Economy** (EN; Finance digest is
+   still written in Portuguese). **VentureBeat feed returns 0 entries** — replace its URL or drop
+   it. Remember the M2 lesson: check `len(feed.entries)`, not HTTP 200 (InfoMoney category feeds
+   returned 0 before; the homepage feed mixes in sports).
+5. Raise `fetcher.MAX_ARTICLES` from 40 to ~80 so Gemini has enough to pick 25.
+
+Frontend (spec in `DESIGN.md` → "News page", "News card", "Glossary"):
+- Single column of cards: image 120×80 (or category icon box) | badge + header + summary, link
+  "Ler no <fonte> ↗" at the end. Phone: image on top.
+- Glossary grouped by category, highlights the card in view (`IntersectionObserver`), smooth
+  scroll + focus on click. Desktop: sticky right column; <1024px: "Índice" button → bottom sheet.
+- Category icons (Lucide): trending-up, handshake, bitcoin, wallet, cpu, briefcase.
+
+### Other pending items
+
+- Home and Transações pages, nav labels (still English) and nav icons (still text glyphs) haven't
+  been restyled to `DESIGN.md` yet — do them after the news page.
+- Running locally: another project (Pressure Agenda) sometimes holds ports 8000/5173; the Hub
+  needs both free (Vite proxy is fixed to :8000).
+- Still deferred: M5 (Tailscale + single-port prod build).
+
+---
+
+### (historical) UI overhaul — Midnight Sepia (2026-06-20)
+
+Superseded by the 2026-10 redesign above; kept for the record of what was built then.
 
 **UI overhaul + M3 + M4 are DONE (uncommitted).** The hub now has a fully restyled
 (Claude-style) React frontend and two new tested backend endpoints. See `PRD.md` for the spec
@@ -126,11 +220,8 @@ is AI-specific — everything else is provider-agnostic. Prompt caching skipped 
   fixed it. Position + emphasis matter.
 - `python -c "..."` breaks on pasted **indentation** — use a single line with `;` separators.
 
-**▶️ First thing next session:** (1) run the app and eyeball the new theme (`uvicorn` +
-`npm run dev`); tweak palette/spacing to taste. (2) Commit the overhaul (still uncommitted) —
-add `recharts`/`react-markdown` are in `package.json`; `backend/requirements-dev.txt` is new.
-(3) Then **M5** — Tailscale iPhone access + single-port prod build (`npm run build` served by
-FastAPI). The historical M2/M3 pointers below are kept for reference.
+*(Historical pointer — the June overhaul was committed in `0edcf65`; for what's next see
+"Where we are right now" at the top.)*
 
 **M1 closed out this session (2026-06-17):**
 - **Verification checklist passed:** all four `/api/banco/*` endpoints return real JSON;
@@ -222,7 +313,7 @@ totals (R$ 140 + R$ 120) match `month_summary` expense (R$ 260).
 > `adapter.py` — cosmetic only (the path is added at runtime via `sys.path.insert`). Optional
 > fix: `.vscode/settings.json` → `python.analysis.extraPaths` pointing at the Banco root.
 
-## ▶️ Next step when we resume (start Milestone 2)
+## (historical) Next step as of 2026-06-17 (start Milestone 2)
 
 M1 is finished. Next is **Milestone 2 — RSS + Claude digest engine (backend)**. See `PLAN.md`
 "M2" for the shape: `feeds/sources.py` (~12 curated feeds), `feeds/fetcher.py`
