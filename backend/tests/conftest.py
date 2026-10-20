@@ -19,12 +19,12 @@ from banco.db import SCHEMA
 
 
 # (date, amount_cents, kind, description, category_id) for one checking account.
-# Categories: 1 = Aluguel (fixed expense), 2 = Mercado (variable expense).
+# Categories: 1 = Aluguel (fixed expense), 2 = Mercado (variable expense), 3 = Salário (income).
 SEED_TRANSACTIONS = [
     ("2025-11-25",  3000, "expense", "Mercado nov",   2),  # Nov 2025 expense = 3000
     ("2025-12-05",  7000, "expense", "Aluguel dez",   1),  # Dec 2025 expense = 7000
     ("2026-01-15", 10000, "expense", "Mercado jan",   2),  # Jan 2026 expense = 10000
-    ("2026-02-01", 100000, "income", "Salario fev",   None),
+    ("2026-02-01", 100000, "income", "Salario fev",   3),
     ("2026-02-03", 15000, "savings", "Poupanca fev",  None),
     ("2026-02-10", 20000, "expense", "Aluguel fev",   1),  # Feb fixed expense
     ("2026-02-20",  5000, "expense", "Mercado fev",   2),  # Feb variable expense
@@ -46,7 +46,15 @@ def _seed(db_path):
             [
                 (1, "Aluguel", "expense", "#8a6d3b", 1),
                 (2, "Mercado", "expense", "#5b7a8a", 0),
+                (3, "Salário", "income", "#3a7a4a", 0),
+                (4, "Viagem", "expense", "#6a5a8a", 0),
             ],
+        )
+        # Mercado budget: R$ 80 from Jan 2026, lowered to R$ 60 from Mar 2026. Aluguel has none.
+        # Viagem has a R$ 300 budget but no transactions at all.
+        conn.executemany(
+            "INSERT INTO budgets (category_id, month_cents, starts_on) VALUES (?,?,?)",
+            [(2, 8000, "2026-01-01"), (2, 6000, "2026-03-01"), (4, 30000, "2026-01-01")],
         )
         conn.executemany(
             "INSERT INTO transactions (date, amount_cents, kind, description, account_id, category_id) "

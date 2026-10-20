@@ -40,3 +40,12 @@ def test_top_expenses_are_the_months_largest_first(client):
 def test_top_expenses_respects_limit(client):
     resp = client.get("/api/banco/top-expenses?year=2026&month=2&limit=1")
     assert [t["description"] for t in resp.json()] == ["Aluguel fev"]
+
+
+def test_goals_report_what_was_contributed_in_the_selected_month(client):
+    """Reserva got the Feb savings transaction (R$ 150): that's Feb's contribution; March got nothing."""
+    feb = client.get("/api/banco/goals?year=2026&month=2").json()
+    mar = client.get("/api/banco/goals?year=2026&month=3").json()
+
+    assert feb[0]["month_contribution_cents"] == 15000
+    assert mar[0]["month_contribution_cents"] == 0

@@ -23,10 +23,6 @@ export function getSummary(year, month){
     return getJSON(`/api/banco/summary${params}`)
 }
 
-export function getCategories(year, month){
-    const params = (year && month) ? `?year=${year}&month=${month}` : ''
-    return getJSON(`/api/banco/categories${params}`)
-}
 
 export function getTrends(year, month, months = 6){
     const params = new URLSearchParams()
@@ -35,21 +31,26 @@ export function getTrends(year, month, months = 6){
     return getJSON(`/api/banco/trends?${params.toString()}`)
 }
 
-export function getFixedVariable(year, month){
-    const params = (year && month) ? `?year=${year}&month=${month}` : ''
-    return getJSON(`/api/banco/fixed-variable${params}`)
-}
 
 export function getBalances(){
     return getJSON(`/api/banco/balances`)
 }
 
-export function getGoals(){
-    return getJSON(`/api/banco/goals`)
+export function getGoals(year, month){
+    return getJSON(`/api/banco/goals?year=${year}&month=${month}`)
 }
 
 export function getTopExpenses(year, month, limit = 5){
     return getJSON(`/api/banco/top-expenses?year=${year}&month=${month}&limit=${limit}`)
+}
+
+export function getDailyExpenses(year, month){
+    return getJSON(`/api/banco/daily-expenses?year=${year}&month=${month}`)
+}
+
+// kind: 'expense' | 'income'
+export function getCategoryHistory(year, month, months = 6, kind = 'expense'){
+    return getJSON(`/api/banco/category-history?year=${year}&month=${month}&months=${months}&kind=${kind}`)
 }
 
 export function getDigest(topic){

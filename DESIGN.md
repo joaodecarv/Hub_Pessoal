@@ -42,7 +42,7 @@ All values below were checked for WCAG contrast (ratios against the listed surfa
 Each has a tint for backgrounds behind small badges: `color-mix(in srgb, var(--income) 12%, transparent)`.
 Text on a tint uses the solid token itself.
 
-### Chart categorical palette (donut only)
+### Chart categorical palette (no longer used — the donut was removed)
 
 Never red or green, so categories are not read as gain/loss. These hues exist only inside
 the donut and its legend (slot 3 shares its dark value with `--warning`, which never appears
@@ -87,19 +87,31 @@ Labels stay in sentence case ("Despesas do mês"). No uppercase-with-tracking la
 - **Radius:** 8px for controls (buttons, inputs, badges, images), 12px for cards. Nothing else.
 - **Shadows:** none. Light theme: cards are separated by `1px solid var(--border)` on `--bg`.
   Dark theme: the lighter surface plus the same border expresses elevation.
-- **Shell:** sidebar 232px (unchanged); content `max-width: 1200px`, padding 32px (desktop) /
+- **Shell:** sidebar 232px (unchanged); content `max-width: 1440px`, padding 32px (desktop) /
   16px (phone). Under 768px the sidebar becomes the existing bottom tab bar.
 - **Grid:** 12 columns, gap 16px. Cards span 3 (KPI), 6 (half) or 12 (full); every card is
   12 columns under 768px.
 
 ### Dashboard order
 
-1. KPI row (4 × span 3): Saldo do mês · Receitas · Despesas · Taxa de poupança, each with
-   delta vs the previous month.
-2. Tendência de 6 meses (span 7) · Despesas por categoria donut (span 5).
-3. Fixo vs variável (span 5) · Maiores despesas do mês, top 5 (span 7).
-4. Saldo por conta (span 6) · Metas (span 6).
-5. Atividade recente (span 12).
+Desktop-first (decided 2026-10-19 from the UI-model prototypes: "C + D + E" merged into the old dashboard).
+Content `max-width` is 1440px.
+
+1. KPI strip — one bordered container split in four cells: Saldo do mês · Receitas · Despesas ·
+   Taxa de poupança, each with delta vs the previous month and a 6-month sparkline.
+2. Gasto acumulado no mês (span 8): cumulative daily spending, previous month dashed, total budget as a
+   dashed `--warning` line when budgets exist; hover shows the day's value · Metas + Saldo por conta (span 4).
+3. Destino da renda (span 12): 100% bar of income (fixed categories in `--text`, variable in `--text-3`,
+   guardado `--savings`, sobra `--income`), headline shares and a ranked list with the change in
+   percentage points vs the previous month.
+4. Para onde foi cada real (span 12): Sankey income sources → renda → fixas/variáveis/guardado/sobra →
+   categories. A month with a deficit adds a "Déficit" source in `--expense`.
+5. Planilha do mês (span 12): receitas, despesas fixas, despesas variáveis and metas; columns Orçado ·
+   Realizado · % da renda · Disponível · Uso · 6 meses · vs média. Toggle to a "Últimos 6 meses" table.
+6. Atividade recente (span 7) · Maiores despesas do mês (span 5).
+
+The donut, the fixed-vs-variable bar and the 6-month trend chart were removed: the Sankey, the
+planilha groups and the KPI sparklines carry the same information.
 
 The month selector sits top-right in the page header and drives every per-month card.
 

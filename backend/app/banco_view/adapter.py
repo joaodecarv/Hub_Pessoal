@@ -184,11 +184,22 @@ def account_balances() -> list[dict]:
         conn.close()
 
 
-def goals_progress() -> list[dict]:
+def goals_progress(year: int, month: int) -> list[dict]:
     """Active goals with saved-vs-target progress. Banco's GoalProgress computes the
-    pace (on_track); we only flatten it, with the deadline as an ISO string or None."""
+    pace (on_track); we only flatten it, with the deadline as an ISO string or None.
+    month_contribution_cents is what the goal's linked transactions added in year/month
+    (Banco has no service for this, so we sum goal_contributions ourselves)."""
+    last_day = calendar.monthrange(year, month)[1]
     conn = _connect()
     try:
+        contributed = dict(conn.execute(
+            """SELECT gc.goal_id, SUM(t.amount_cents)
+                 FROM goal_contributions gc
+                 JOIN transactions t ON t.id = gc.transaction_id
+                WHERE t.date BETWEEN ? AND ?
+                GROUP BY gc.goal_id""",
+            (date(year, month, 1).isoformat(), date(year, month, last_day).isoformat()),
+        ).fetchall())
         return [
             {
                 "id": g.goal_id,
@@ -199,6 +210,7 @@ def goals_progress() -> list[dict]:
                 "days_remaining": g.days_remaining,
                 "achieved": g.achieved,
                 "on_track": g.on_track,
+                "month_contribution_cents": contributed.get(g.goal_id, 0),
             }
             for g in services.GoalService(conn).list_progress()
         ]
@@ -223,5 +235,63 @@ def top_expenses(year: int, month: int, limit: int = 5) -> list[dict]:
              "amount_cents": t.amount_cents}
             for t in txs
         ]
+    finally:
+        conn.close()
+
+
+def daily_expenses(year: int, month: int) -> list[dict]:
+    """Expense total for every day of the month (zero-filled), for the month-to-date curve."""
+    last_day = calendar.monthrange(year, month)[1]
+    conn = _connect()
+    try:
+        txs = repositories.TransactionRepository(conn).list(
+            date_from=date(year, month, 1),
+            date_to=date(year, month, last_day),
+            kind=TransactionKind.EXPENSE,
+        )
+        by_day = [0] * last_day
+        for t in txs:
+            by_day[t.date.day - 1] += t.amount_cents
+        return [{"day": d + 1, "expense_cents": c} for d, c in enumerate(by_day)]
+    finally:
+        conn.close()
+
+
+def _month_window(year: int, month: int, months: int) -> list[tuple[int, int]]:
+    """(year, month) pairs for `months` months ending at the given one, oldest first."""
+    walk = [(year, month)]
+    for _ in range(months - 1):
+        walk.append(_prev_year_month(*walk[-1]))
+    return walk[::-1]
+
+
+def category_history(year: int, month: int, months: int = 6, kind: str = "expense") -> list[dict]:
+    """Per-category totals for each month of the window (oldest first, zero where a category
+    had nothing), ordered by the last month's total, largest first. Uncategorized rows share
+    one 'Sem categoria' entry, as in Banco's category_breakdown."""
+    window = _month_window(year, month, months)
+    conn = _connect()
+    try:
+        report = services.ReportService(conn)
+        rows: dict = {}
+        for i, (yy, mm) in enumerate(window):
+            for s in report.category_breakdown(yy, mm, kind=TransactionKind(kind)):
+                row = rows.setdefault(s.category_id, {
+                    "category_id": s.category_id,
+                    "category_name": s.category_name,
+                    "is_fixed": s.is_fixed,
+                    "history_cents": [0] * len(window),
+                })
+                row["history_cents"][i] = s.total_cents
+        budgets = {b.category_id: b.budget_cents for b in report.budget_progress(year, month)}
+        categories = repositories.CategoryRepository(conn)
+        for cid in budgets.keys() - rows.keys():
+            c = categories.get(cid)
+            if c.kind.value == kind:
+                rows[cid] = {"category_id": cid, "category_name": c.name, "is_fixed": c.is_fixed,
+                             "history_cents": [0] * len(window)}
+        for row in rows.values():
+            row["budget_cents"] = budgets.get(row["category_id"])
+        return sorted(rows.values(), key=lambda r: r["history_cents"][-1], reverse=True)
     finally:
         conn.close()

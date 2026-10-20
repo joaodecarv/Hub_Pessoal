@@ -37,10 +37,21 @@ def get_balances():
     return adapter.account_balances()
 
 @router.get("/goals")
-def get_goals():
-    return adapter.goals_progress()
+def get_goals(year: int | None=None, month: int | None=None):
+    today = date.today()
+    return adapter.goals_progress(year or today.year, month or today.month)
 
 @router.get("/top-expenses")
 def get_top_expenses(year: int | None=None, month: int | None=None, limit: int = 5):
     today = date.today()
     return adapter.top_expenses(year or today.year, month or today.month, limit)
+
+@router.get("/daily-expenses")
+def get_daily_expenses(year: int | None=None, month: int | None=None):
+    today = date.today()
+    return adapter.daily_expenses(year or today.year, month or today.month)
+
+@router.get("/category-history")
+def get_category_history(year: int | None=None, month: int | None=None, months: int = 6, kind: str = "expense"):
+    today = date.today()
+    return adapter.category_history(year or today.year, month or today.month, months, kind)
