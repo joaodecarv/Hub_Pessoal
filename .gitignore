@@ -5,3 +5,6 @@ __pycache__/
 *.pyc
 backend/Banco/
 hub.db
+build-release/
+packaging/icons/
+frontend/dist/
