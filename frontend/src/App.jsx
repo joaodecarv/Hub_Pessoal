@@ -4,6 +4,7 @@ import BancoDashboard from './BancoDashboard.jsx'
 import BancoTransactions from './BancoTransactions.jsx'
 import GoalsBudgets from './GoalsBudgets.jsx'
 import NewsPage from './NewsPage.jsx'
+import Configuracoes from './Configuracoes.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 
 const NAV = [
@@ -13,6 +14,7 @@ const NAV = [
     { id: 'goals', label: 'Metas & Orçamentos', icon: '◎' },
     { id: 'ai', label: 'AI News', icon: '✦' },
     { id: 'finance', label: 'Finance News', icon: '$' },
+    { id: 'settings', label: 'Configurações', icon: '⚙' },
 ]
 
 function App(){
@@ -44,6 +46,7 @@ function App(){
                 {page === 'goals' && <GoalsBudgets />}
                 {page === 'ai' && <NewsPage topic="ai" />}
                 {page === 'finance' && <NewsPage topic="finance" />}
+                {page === 'settings' && <Configuracoes />}
             </main>
         </div>
     )

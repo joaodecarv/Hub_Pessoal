@@ -4,3 +4,6 @@ python_dotenv
 feedparser
 google-genai
 ofxparse>=0.21
+python-multipart
+# Desktop shell; >= 6.7 for QWebEngineUrlRequestJob.requestBody() (POST bodies over hub://)
+PySide6>=6.7
