@@ -37,8 +37,8 @@ export function getTransactionOptions(){
     return getJSON(`/api/banco/transactions/options`)
 }
 
-// Writes surface the API's readable 422 message (`detail`) as the Error message.
-async function writeTransaction(path, method, body){
+// Sends a write (or any JSON request) and surfaces the API's readable `detail` (422/409) as the Error message.
+export async function sendJson(path, method, body){
     // FormData bodies (file uploads) must go out untouched so the browser sets the multipart boundary.
     const isForm = body instanceof FormData
     const response = await fetch(path, {
@@ -52,37 +52,36 @@ async function writeTransaction(path, method, body){
 }
 
 export function createTransaction(body){
-    return writeTransaction(`/api/banco/transactions`, 'POST', body)
+    return sendJson(`/api/banco/transactions`, 'POST', body)
 }
 
 export function updateTransaction(id, body){
-    return writeTransaction(`/api/banco/transactions/${id}`, 'PUT', body)
+    return sendJson(`/api/banco/transactions/${id}`, 'PUT', body)
 }
 
 export function deleteTransaction(id){
-    return writeTransaction(`/api/banco/transactions/${id}`, 'DELETE')
+    return sendJson(`/api/banco/transactions/${id}`, 'DELETE')
 }
 
-// Goals & budgets (Metas & Orçamentos page). Writes reuse writeTransaction: it is a
-// generic fetch that turns the API's Portuguese 422 `detail` into the Error message.
+// Goals & budgets (Metas & Orçamentos page). Writes use sendJson.
 export function getGoalsOverview(){
     return getJSON(`/api/banco/goals/overview`)
 }
 
 export function createGoal(body){
-    return writeTransaction(`/api/banco/goals`, 'POST', body)
+    return sendJson(`/api/banco/goals`, 'POST', body)
 }
 
 export function updateGoal(id, body){
-    return writeTransaction(`/api/banco/goals/${id}`, 'PUT', body)
+    return sendJson(`/api/banco/goals/${id}`, 'PUT', body)
 }
 
 export function archiveGoal(id, archived){
-    return writeTransaction(`/api/banco/goals/${id}/archive`, 'PUT', { archived })
+    return sendJson(`/api/banco/goals/${id}/archive`, 'PUT', { archived })
 }
 
 export function deleteGoal(id){
-    return writeTransaction(`/api/banco/goals/${id}`, 'DELETE')
+    return sendJson(`/api/banco/goals/${id}`, 'DELETE')
 }
 
 export function getBudgets(year, month){
@@ -91,13 +90,13 @@ export function getBudgets(year, month){
 
 // Sets the category's limit from year/month onward.
 export function setBudget(categoryId, year, month, limitCents){
-    return writeTransaction(`/api/banco/budgets/${categoryId}`, 'PUT',
+    return sendJson(`/api/banco/budgets/${categoryId}`, 'PUT',
         { year, month, limit_cents: limitCents })
 }
 
 // Stops budgeting the category from year/month onward.
 export function removeBudget(categoryId, year, month){
-    return writeTransaction(`/api/banco/budgets/${categoryId}?year=${year}&month=${month}`, 'DELETE')
+    return sendJson(`/api/banco/budgets/${categoryId}?year=${year}&month=${month}`, 'DELETE')
 }
 
 // Statement import. Preview uploads the file and writes nothing; commit saves the
@@ -108,11 +107,11 @@ export function previewImport({ file, accountId, mapping = null, remap = false }
     form.set('account_id', accountId)
     if (mapping) form.set('mapping', JSON.stringify(mapping))
     if (remap) form.set('remap', 'true')
-    return writeTransaction(`/api/banco/import/preview`, 'POST', form)
+    return sendJson(`/api/banco/import/preview`, 'POST', form)
 }
 
 export function commitImport(body){
-    return writeTransaction(`/api/banco/import/commit`, 'POST', body)
+    return sendJson(`/api/banco/import/commit`, 'POST', body)
 }
 
 export function getSummary(year, month){
@@ -156,7 +155,7 @@ export function getDigest(topic){
 
 // Surfaces the API's readable error (e.g. missing Gemini key) as the Error message.
 export function refreshDigest(topic){
-    return writeTransaction(`/api/digest/refresh?topic=${topic}`, 'POST')
+    return sendJson(`/api/digest/refresh?topic=${topic}`, 'POST')
 }
 
 export function getGeminiStatus(){
@@ -164,7 +163,7 @@ export function getGeminiStatus(){
 }
 
 export function saveGeminiKey(apiKey){
-    return writeTransaction(`/api/config/gemini`, 'PUT', { api_key: apiKey })
+    return sendJson(`/api/config/gemini`, 'PUT', { api_key: apiKey })
 }
 
 export function getAppVersion(){

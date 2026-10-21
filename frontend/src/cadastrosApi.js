@@ -1,17 +1,10 @@
 // Contas, categorias e regras (Configurações). Errors carry the API's readable
 // Portuguese `detail` (422 validation, 409 conflicts) as the Error message.
+import { sendJson } from './api.js'
+
 const BASE = '/api/banco/cadastros'
 
-async function request(path, method = 'GET', body){
-    const response = await fetch(`${BASE}${path}`, {
-        method,
-        headers: body ? { 'Content-Type': 'application/json' } : undefined,
-        body: body ? JSON.stringify(body) : undefined,
-    })
-    if (response.ok) return response.status === 204 ? null : response.json()
-    const payload = await response.json().catch(() => null)
-    throw new Error(typeof payload?.detail === 'string' ? payload.detail : `Erro ${response.status}`)
-}
+const request = (path, method = 'GET', body) => sendJson(`${BASE}${path}`, method, body)
 
 export const listAccounts = () => request('/accounts')
 export const createAccount = (body) => request('/accounts', 'POST', body)

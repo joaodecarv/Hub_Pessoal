@@ -47,7 +47,7 @@ function BudgetRow({ row, year, month, onChanged }){
             <td className="n">
                 {mode === 'edit' ? (
                     <form className="gb-inline" onSubmit={save}>
-                        <input className="gb-input gb-limit-input" inputMode="decimal" placeholder="0,00"
+                        <input className="tx-input gb-limit-input" inputMode="decimal" placeholder="0,00"
                                aria-label={`Limite de ${row.category_name}`} value={text} autoFocus
                                onChange={(e) => setText(e.target.value)}
                                onKeyDown={(e) => { if (e.key === 'Escape') setMode('view') }} />
@@ -60,7 +60,7 @@ function BudgetRow({ row, year, month, onChanged }){
                         {hasBudget ? <Money cents={row.budget_cents} /> : <span className="gb-set">Definir limite</span>}
                     </button>
                 )}
-                {error && <p className="gb-error" role="alert">{error}</p>}
+                {error && <p className="tx-error" role="alert">{error}</p>}
             </td>
             <td className="n"><Money cents={row.spent_cents} /></td>
             <td className="gb-use">
@@ -90,7 +90,7 @@ function BudgetRow({ row, year, month, onChanged }){
                 <td colSpan={6} role="alertdialog" aria-label="Confirmar remoção">
                     Remover o orçamento de {row.category_name} a partir de {MONTHS_PT[month - 1]}/{year}?
                     <span className="gb-remove-btns">
-                        <button className="gb-link gb-danger-text" disabled={busy}
+                        <button className="gb-link tx-danger-text" disabled={busy}
                                 onClick={() => run(() => removeBudget(row.category_id, year, month))}>Remover</button>
                         <button className="gb-link" onClick={() => setMode('view')}>Manter</button>
                     </span>
@@ -108,7 +108,7 @@ function BudgetsSection({ rows, year, month, onChanged }){
 
     return (
         <section className="card gb-budgets">
-            <table className="gb-table">
+            <table className="tx-table gb-table">
                 <thead>
                     <tr>
                         <th>Categoria</th><th className="n">Limite</th><th className="n">Gasto</th>

@@ -3,6 +3,7 @@ import { getGoalsOverview, getBudgets } from './api.js'
 import MonthSelector from './components/MonthSelector.jsx'
 import GoalsSection from './components/GoalsSection.jsx'
 import BudgetsSection from './components/BudgetsSection.jsx'
+import './transactions.css'
 import './goalsBudgets.css'
 
 function GoalsBudgets(){
@@ -41,7 +42,7 @@ function GoalsBudgets(){
                 </div>
             </div>
 
-            {error && <p className="gb-error" role="alert">{error}</p>}
+            {error && <p className="tx-error" role="alert">{error}</p>}
 
             {goals ? <GoalsSection goals={goals} onChanged={reload} /> : !error && <p className="note">Carregando…</p>}
 

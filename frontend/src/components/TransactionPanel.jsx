@@ -2,13 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { createTransaction, updateTransaction, deleteTransaction } from '../api.js'
 import { parseMoneyToCents, centsToInput } from '../finance/moneyInput.js'
+import { KINDS } from '../finance/kinds.js'
 import '../transactions.css'
-
-const KINDS = [
-    { value: 'expense', label: 'Despesa' },
-    { value: 'income', label: 'Receita' },
-    { value: 'savings', label: 'Poupança' },
-]
 
 const todayISO = () => {
     const d = new Date()

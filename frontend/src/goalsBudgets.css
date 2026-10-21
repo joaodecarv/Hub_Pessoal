@@ -6,19 +6,6 @@
 .gb-plus{ vertical-align:-3px; margin-right:2px; }
 .gb-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 
-.gb-input{
-  height:36px; width:100%; padding:0 10px;
-  background:var(--surface); color:var(--text);
-  border:1px solid var(--border-strong); border-radius:var(--radius-ctl);
-  font:inherit; font-size:14px;
-}
-.gb-input:hover{ border-color:var(--text-2); }
-textarea.gb-input{ height:auto; padding:8px 10px; resize:vertical; }
-.gb-error{ margin:0; font-size:13px; color:var(--expense); }
-.gb-actions{ display:flex; gap:8px; align-items:center; }
-.gb-danger{ border-color:var(--expense); color:var(--expense); }
-.gb-danger:hover{ background:color-mix(in srgb, var(--expense) 12%, transparent); }
-
 /* Shared progress bar (goals in --savings, budgets in --text, over limit in --warning). */
 .gb-bar{ height:6px; border-radius:3px; background:var(--surface-2); overflow:hidden; }
 .gb-bar > div{ height:100%; background:var(--savings); }
@@ -37,11 +24,6 @@ textarea.gb-input{ height:auto; padding:8px 10px; resize:vertical; }
 .gb-late .gb-goal-status{ color:var(--warning); }
 .gb-done .gb-bar > div{ background:var(--income); }
 .gb-done .gb-goal-status{ color:var(--income); }
-.gb-confirm{
-  border:1px solid var(--border-strong); border-radius:var(--radius-ctl);
-  padding:12px; display:flex; flex-direction:column; gap:10px; font-size:14px;
-}
-.gb-confirm p{ margin:0; }
 
 .gb-archived{ margin-top:24px; }
 .gb-archived summary{ cursor:pointer; font-size:14px; font-weight:500; color:var(--text-2); padding:8px 0; }
@@ -51,22 +33,12 @@ textarea.gb-input{ height:auto; padding:8px 10px; resize:vertical; }
 /* Goal form */
 .gb-form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
 .gb-wide{ grid-column:1 / -1; }
-.gb-field{ display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:500; color:var(--text-2); }
 
 /* Budgets table: 44px rows, amounts right-aligned and tabular. */
 .gb-budgets{ padding:0; overflow-x:auto; }
-.gb-table{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
-.gb-table th{
-  font-size:12px; font-weight:500; color:var(--text-3); text-align:left;
-  padding:10px 12px; border-bottom:1px solid var(--border-strong); white-space:nowrap;
-}
-.gb-table td{ min-height:44px; height:44px; padding:0 12px; border-bottom:1px solid var(--border); white-space:nowrap; }
-.gb-table tbody tr:hover td{ background:var(--surface-2); }
+/* Plain rows (not clickable) and a totals footer on top of .tx-table. */
+.tx-table.gb-table tbody tr{ cursor:default; }
 .gb-table tfoot td{ font-weight:600; border-bottom:0; border-top:1px solid var(--border-strong); }
-.gb-table th:first-child, .gb-table td:first-child{ padding-left:20px; }
-.gb-table th:last-child, .gb-table td:last-child{ padding-right:20px; }
-.gb-table .n{ text-align:right; }
-.gb-table th, .gb-table td{ padding-left:10px; padding-right:10px; }
 .gb-use{ min-width:100px; width:20%; }
 .gb-use-cell{ display:flex; align-items:center; gap:10px; }
 .gb-use-cell .gb-bar{ flex:1; }

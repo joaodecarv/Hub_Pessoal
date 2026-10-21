@@ -4,14 +4,10 @@ import {
     listCategories, createCategory, updateCategory, deleteCategory, getCategoryImpact,
 } from '../cadastrosApi.js'
 import SettingsPanel from './SettingsPanel.jsx'
+import { KINDS } from '../finance/kinds.js'
 import '../transactions.css'
 import '../settings.css'
 
-const KINDS = [
-    { value: 'expense', label: 'Despesa' },
-    { value: 'income', label: 'Receita' },
-    { value: 'savings', label: 'Poupança' },
-]
 const KIND_LABEL = Object.fromEntries(KINDS.map((k) => [k.value, k.label]))
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`

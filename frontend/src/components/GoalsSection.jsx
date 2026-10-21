@@ -65,20 +65,20 @@ function GoalCard({ goal, onChanged }){
             )}
             {goal.notes && <p className="gb-goal-note">{goal.notes}</p>}
 
-            {error && <p className="gb-error" role="alert">{error}</p>}
+            {error && <p className="tx-error" role="alert">{error}</p>}
 
             {confirming ? (
-                <div className="gb-confirm" role="alertdialog" aria-label="Confirmar exclusão">
+                <div className="tx-confirm" role="alertdialog" aria-label="Confirmar exclusão">
                     <p>Excluir a meta “{goal.name}”? Os aportes deixam de contar para ela, mas as transações continuam.</p>
-                    <div className="gb-actions">
-                        <button className="btn gb-danger" disabled={busy} onClick={() => run(() => deleteGoal(goal.id))}>
+                    <div className="tx-actions">
+                        <button className="btn tx-danger" disabled={busy} onClick={() => run(() => deleteGoal(goal.id))}>
                             Confirmar exclusão
                         </button>
                         <button className="btn" onClick={() => setConfirming(false)}>Manter</button>
                     </div>
                 </div>
             ) : (
-                <div className="gb-actions">
+                <div className="tx-actions">
                     <button className="btn" onClick={() => setEditing(true)}>Editar</button>
                     <button className="btn" disabled={busy} onClick={() => run(() => archiveGoal(goal.id, !goal.archived))}>
                         {goal.archived ? 'Restaurar' : 'Arquivar'}

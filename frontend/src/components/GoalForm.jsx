@@ -35,22 +35,22 @@ function GoalForm({ goal, onCancel, onSaved }){
         <form className="card gb-form" onSubmit={save} aria-label={goal ? 'Editar meta' : 'Nova meta'}>
             <h3 className="card-title">{goal ? 'Editar meta' : 'Nova meta'}</h3>
             <div className="gb-form-grid">
-                <label className="gb-field gb-wide">Nome
-                    <input className="gb-input" value={form.name} onChange={set('name')} autoFocus />
+                <label className="tx-field gb-wide">Nome
+                    <input className="tx-input" value={form.name} onChange={set('name')} autoFocus />
                 </label>
-                <label className="gb-field">Valor alvo
-                    <input className="gb-input" inputMode="decimal" placeholder="0,00"
+                <label className="tx-field">Valor alvo
+                    <input className="tx-input" inputMode="decimal" placeholder="0,00"
                            value={form.target} onChange={set('target')} />
                 </label>
-                <label className="gb-field">Prazo (opcional)
-                    <input className="gb-input" type="date" value={form.deadline} onChange={set('deadline')} />
+                <label className="tx-field">Prazo (opcional)
+                    <input className="tx-input" type="date" value={form.deadline} onChange={set('deadline')} />
                 </label>
-                <label className="gb-field gb-wide">Notas
-                    <textarea className="gb-input gb-notes" rows={2} value={form.notes} onChange={set('notes')} />
+                <label className="tx-field gb-wide">Notas
+                    <textarea className="tx-input gb-notes" rows={2} value={form.notes} onChange={set('notes')} />
                 </label>
             </div>
-            {error && <p className="gb-error" role="alert">{error}</p>}
-            <div className="gb-actions">
+            {error && <p className="tx-error" role="alert">{error}</p>}
+            <div className="tx-actions">
                 <button type="submit" className="btn btn-accent" disabled={busy}>{busy ? 'Salvando…' : 'Salvar'}</button>
                 <button type="button" className="btn" onClick={onCancel}>Cancelar</button>
             </div>
