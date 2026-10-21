@@ -1,9 +1,10 @@
 from datetime import date
 from fastapi import APIRouter
-from app.banco_view import adapter, transactions
+from app.banco_view import adapter, importing, transactions
 
 router = APIRouter(prefix="/api/banco", tags=["banco"])
 router.include_router(transactions.router)
+router.include_router(importing.router)
 
 @router.get("/accounts")
 def get_accounts():
