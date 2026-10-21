@@ -1,27 +1,19 @@
 import calendar
 import sqlite3
-import sys
 from datetime import date
 from app import config
 
-if str(config.BANCO_SRC_PATH) not in sys.path:
-    sys.path.insert(0, str(config.BANCO_SRC_PATH))
-    
-from banco import repositories, services
+from banco import db, repositories, services
 from banco.models import TransactionKind
 from banco.repositories import SortBy
 
 def _connect() -> sqlite3.Connection:
-    """Open the SAME SQLite file Banco uses, but READ-ONLY.
-  
-      `file:...?mode=ro` + uri=True asks SQLite for a read-only handle, so a bug
-      in our code can never write to your real finances. We still set
-      row_factory = sqlite3.Row because Banco's row-mappers read columns by name
-      (r["id"], r["name"], ...)."""
-    uri=f"file:{config.BANCO_DB_PATH}?mode=ro"
-    conn=sqlite3.connect(uri, uri=True)
-    conn.row_factory=sqlite3.Row
-    return conn
+    """Open the SAME SQLite file Banco uses, writable, with foreign keys ON.
+
+    Callers that write wrap the work in `banco.db.transaction(conn)` so a failed
+    request rolls back. Rows come back as sqlite3.Row because Banco's row-mappers
+    read columns by name (r["id"], r["name"], ...)."""
+    return db.connect(config.BANCO_DB_PATH)
 
 def list_accounts() -> list[dict]:
     """Every accounts as plain dicts: id, name, kind.

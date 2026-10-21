@@ -11,9 +11,9 @@ pelo Gemini a partir de feeds RSS.
 
 - Python 3.12+
 - Node.js 20+ (o `start.sh` carrega o `nvm` automaticamente, se existir)
-- O projeto **Banco** clonado em `/home/joao/Workspaces_VSCODE/Meus_Projetos/Banco`
-  (caminho fixo em `backend/app/config.py`, `BANCO_SRC_PATH`) e o banco de dados dele em
-  `~/.local/share/banco/banco.db`
+- O código de domínio do Banco vive em `backend/banco/`. O banco de dados fica em
+  `~/.local/share/banco/banco.db` (criado com contas e categorias padrão se não existir; cópia
+  diária em `backups/`, últimas 14). O `hub.db` fica em `~/.local/share/hubpessoal/`.
 - Uma chave da API do Gemini (camada gratuita) para gerar os digests de notícias
 
 ## Instalação (uma vez)

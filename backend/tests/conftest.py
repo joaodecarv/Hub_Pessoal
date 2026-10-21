@@ -1,21 +1,33 @@
-"""Test harness for the Banco read-only API.
+"""Test harness for the Banco API.
 
-We never touch João's real banco.db. Instead each test run gets a throwaway
-SQLite file built from Banco's own SCHEMA and seeded with a small, known set of
-transactions across several months. We point `config.BANCO_DB_PATH` at that file
-(the adapter reads it read-only at call time) and drive the real FastAPI app
-through a TestClient — so the tests exercise the whole stack the way a browser
-would, without caring about internal function wiring.
+We never touch João's real banco.db, hub.db or config dir. An autouse fixture
+points every path in `config` at a pytest tmp dir for every test; the `client`
+fixture then builds a throwaway SQLite file from Banco's own SCHEMA, seeded with
+a small, known set of transactions across several months, and points
+`config.BANCO_DB_PATH` at it (the adapter reads it at call time). We drive the
+real FastAPI app through a TestClient — so the tests exercise the whole stack the
+way a browser would, without caring about internal function wiring.
 """
+import os
 import sqlite3
+
+# app.feeds.digest builds a Gemini client at import time, which requires a key.
+os.environ.setdefault("GEMINI_API_KEY", "test-key")
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app import config
-# Importing the adapter puts Banco's source on sys.path, so `banco.db` is importable.
-from app.banco_view import adapter  # noqa: F401
 from banco.db import SCHEMA
+
+
+@pytest.fixture(autouse=True)
+def isolated_paths(tmp_path, monkeypatch):
+    """Redirect every on-disk location the app uses into tmp_path."""
+    monkeypatch.setattr(config, "BANCO_DB_PATH", tmp_path / "data" / "banco" / "banco.db")
+    monkeypatch.setattr(config, "HUB_DB_PATH", tmp_path / "data" / "hubpessoal" / "hub.db")
+    monkeypatch.setattr(config, "LEGACY_HUB_DB_PATH", tmp_path / "legacy" / "hub.db")
+    monkeypatch.setattr(config, "CONFIG_DIR", tmp_path / "config" / "hubpessoal")
 
 
 # (date, amount_cents, kind, description, category_id) for one checking account.

@@ -1,8 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.feeds import digest, digest_store
 
-digest_store.init_db()   # make sure the digests table exists on startup
-
 router = APIRouter(prefix="/api/digest", tags=["digest"])
 
 VALID_TOPICS = {"ai", "finance"}
