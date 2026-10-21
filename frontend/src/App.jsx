@@ -2,6 +2,7 @@ import { useState } from 'react'
 import HubHome from './HubHome.jsx'
 import BancoDashboard from './BancoDashboard.jsx'
 import BancoTransactions from './BancoTransactions.jsx'
+import GoalsBudgets from './GoalsBudgets.jsx'
 import NewsPage from './NewsPage.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 
@@ -9,6 +10,7 @@ const NAV = [
     { id: 'home', label: 'Home', icon: '◇' },
     { id: 'dashboard', label: 'Dashboard', icon: '▦' },
     { id: 'transactions', label: 'Transactions', icon: '≣' },
+    { id: 'goals', label: 'Metas & Orçamentos', icon: '◎' },
     { id: 'ai', label: 'AI News', icon: '✦' },
     { id: 'finance', label: 'Finance News', icon: '$' },
 ]
@@ -39,6 +41,7 @@ function App(){
                 {page === 'home' && <HubHome onNavigate={setPage} />}
                 {page === 'dashboard' && <BancoDashboard />}
                 {page === 'transactions' && <BancoTransactions />}
+                {page === 'goals' && <GoalsBudgets />}
                 {page === 'ai' && <NewsPage topic="ai" />}
                 {page === 'finance' && <NewsPage topic="finance" />}
             </main>
