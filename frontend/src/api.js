@@ -63,6 +63,43 @@ export function deleteTransaction(id){
     return writeTransaction(`/api/banco/transactions/${id}`, 'DELETE')
 }
 
+// Goals & budgets (Metas & Orçamentos page). Writes reuse writeTransaction: it is a
+// generic fetch that turns the API's Portuguese 422 `detail` into the Error message.
+export function getGoalsOverview(){
+    return getJSON(`/api/banco/goals/overview`)
+}
+
+export function createGoal(body){
+    return writeTransaction(`/api/banco/goals`, 'POST', body)
+}
+
+export function updateGoal(id, body){
+    return writeTransaction(`/api/banco/goals/${id}`, 'PUT', body)
+}
+
+export function archiveGoal(id, archived){
+    return writeTransaction(`/api/banco/goals/${id}/archive`, 'PUT', { archived })
+}
+
+export function deleteGoal(id){
+    return writeTransaction(`/api/banco/goals/${id}`, 'DELETE')
+}
+
+export function getBudgets(year, month){
+    return getJSON(`/api/banco/budgets?year=${year}&month=${month}`)
+}
+
+// Sets the category's limit from year/month onward.
+export function setBudget(categoryId, year, month, limitCents){
+    return writeTransaction(`/api/banco/budgets/${categoryId}`, 'PUT',
+        { year, month, limit_cents: limitCents })
+}
+
+// Stops budgeting the category from year/month onward.
+export function removeBudget(categoryId, year, month){
+    return writeTransaction(`/api/banco/budgets/${categoryId}?year=${year}&month=${month}`, 'DELETE')
+}
+
 // Statement import. Preview uploads the file and writes nothing; commit saves the
 // rows the user kept. Both surface the API's readable 422 `detail` as the Error message.
 export function previewImport({ file, accountId, mapping = null, remap = false }){
