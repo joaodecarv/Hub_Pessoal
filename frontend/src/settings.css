@@ -1,0 +1,17 @@
+/* Configurações page: tabs, lists and the delete-impact box (see DESIGN.md). */
+
+.cfg-tabs{ margin-bottom:16px; }
+.cfg-bar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.cfg-bar p{ margin:0; color:var(--text-2); font-size:14px; }
+
+/* Category colour swatch: the one place colour is data the user chose. */
+.cfg-swatch{
+  display:inline-block; width:12px; height:12px; border-radius:50%;
+  vertical-align:-1px; margin-right:8px; border:1px solid var(--border-strong);
+}
+.cfg-color{ padding:2px; width:56px; cursor:pointer; }
+
+.cfg-hint{ margin:0; font-size:13px; color:var(--text-2); }
+.cfg-impact{ margin:0; padding-left:18px; font-size:14px; }
+.cfg-impact li + li{ margin-top:4px; }
+.cfg-check{ display:flex; align-items:center; gap:8px; font-size:14px; color:var(--text); }
