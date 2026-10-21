@@ -1,8 +1,9 @@
 from datetime import date
 from fastapi import APIRouter
-from app.banco_view import adapter
+from app.banco_view import adapter, transactions
 
 router = APIRouter(prefix="/api/banco", tags=["banco"])
+router.include_router(transactions.router)
 
 @router.get("/accounts")
 def get_accounts():
@@ -22,10 +23,6 @@ def get_trends(year: int | None=None, month: int | None=None, months: int = 6):
 def get_fixed_variable(year: int | None=None, month: int | None=None):
     today = date.today()
     return adapter.fixed_vs_variable(year or today.year, month or today.month)
-
-@router.get("/transactions")
-def get_transactions(limit: int = 50, offset: int = 0):
-    return adapter.recent_transactions(limit=limit, offset=offset)
 
 @router.get("/categories")
 def get_categories(year: int | None=None, month: int | None=None):
