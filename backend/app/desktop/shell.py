@@ -1,0 +1,201 @@
+"""Desktop window: PySide6 + QtWebEngine showing the React build at hub://app/.
+
+Every hub:// request (pages, assets and `/api/...` fetches) goes through the
+`Bridge`; the scheme handler here only adapts QWebEngineUrlRequestJob to it and
+runs the bridge on a worker thread, because some API calls (the Gemini digest
+refresh) take many seconds. No TCP socket is opened.
+"""
+import os
+import sys
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+import shiboken6
+from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QObject, QUrl, Signal
+from PySide6.QtNetwork import QLocalServer, QLocalSocket
+from PySide6.QtWebEngineCore import (
+    QWebEnginePage,
+    QWebEngineProfile,
+    QWebEngineScript,
+    QWebEngineUrlRequestJob,
+    QWebEngineUrlScheme,
+    QWebEngineUrlSchemeHandler,
+)
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWidgets import QApplication
+
+from app import config
+from app.desktop.bridge import Bridge
+
+SCHEME = b"hub"
+START_URL = "hub://app/"
+INSTANCE_NAME = f"hubpessoal-{os.getuid()}"
+# Set by the bridge's response, passed to Qt separately (reply() / redirect()).
+_HANDLED_HEADERS = {"content-type", "content-length", "location"}
+
+# Qt answers every custom-scheme reply with HTTP 200 and has no way to set the
+# status (checked on Qt 6.12). The handler sends the real one in X-Hub-Status and
+# this wrapper, injected before any page script runs, rebuilds the Response so
+# `response.ok` / `response.status` behave as they do against Uvicorn.
+FETCH_STATUS_SHIM = """
+(() => {
+  const fetch = window.fetch;
+  window.fetch = async (...args) => {
+    const response = await fetch(...args);
+    const status = Number(response.headers.get('X-Hub-Status'));
+    if (!status || status === response.status) return response;
+    const body = [204, 205, 304].includes(status) ? null : await response.arrayBuffer();
+    return new Response(body, { status, headers: response.headers });
+  };
+})();
+"""
+
+
+def frontend_dist() -> Path:
+    """The React build: bundled next to the frozen app, or frontend/dist in the source tree."""
+    if getattr(sys, "frozen", False):
+        return Path(sys._MEIPASS) / "frontend" / "dist"
+    return Path(__file__).resolve().parents[3] / "frontend" / "dist"
+
+
+def register_scheme() -> None:
+    """Must run before QApplication exists."""
+    scheme = QWebEngineUrlScheme(SCHEME)
+    scheme.setSyntax(QWebEngineUrlScheme.Syntax.Host)
+    scheme.setFlags(
+        QWebEngineUrlScheme.Flag.SecureScheme
+        | QWebEngineUrlScheme.Flag.CorsEnabled
+        | QWebEngineUrlScheme.Flag.FetchApiAllowed
+    )
+    QWebEngineUrlScheme.registerScheme(scheme)
+
+
+class SchemeHandler(QWebEngineUrlSchemeHandler):
+    # Worker threads hand finished responses back through this queued signal, so
+    # every QWebEngineUrlRequestJob call happens on the UI thread.
+    _finished = Signal(object, object)
+
+    def __init__(self, bridge: Bridge, parent: QObject):
+        super().__init__(parent)
+        self._bridge = bridge
+        self._pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="hub-request")
+        self._finished.connect(self._reply)
+
+    def requestStarted(self, job: QWebEngineUrlRequestJob) -> None:
+        url = job.requestUrl()
+        target = url.path(QUrl.ComponentFormattingOption.FullyEncoded) or "/"
+        if url.hasQuery():
+            target += "?" + url.query(QUrl.ComponentFormattingOption.FullyEncoded)
+        method = bytes(job.requestMethod()).decode()
+        headers = {bytes(k).decode("latin-1"): bytes(v).decode("latin-1")
+                   for k, v in job.requestHeaders().items()}
+        body = b""
+        device = job.requestBody()  # Qt >= 6.7; None when the request has no body
+        if device is not None and device.open(QIODevice.OpenModeFlag.ReadOnly):
+            body = bytes(device.readAll())
+
+        future = self._pool.submit(self._bridge.handle, method, target, headers, body)
+        future.add_done_callback(lambda f: self._finished.emit(job, f))
+
+    def _reply(self, job: QWebEngineUrlRequestJob, future) -> None:
+        if not shiboken6.isValid(job):  # page navigated away / request cancelled
+            return
+        try:
+            response = future.result()
+        except Exception as exc:
+            print(f"hub:// {job.requestUrl().toString()} failed: {exc!r}", file=sys.stderr)
+            job.fail(QWebEngineUrlRequestJob.Error.RequestFailed)
+            return
+
+        location = response.header("location")
+        if 300 <= response.status < 400 and location:
+            job.redirect(job.requestUrl().resolved(QUrl(location)))
+            return
+
+        # PySide maps a dict to the QMultiMap by iterating each value, so values are
+        # lists (a bare QByteArray would be split into one header per byte).
+        extra: dict[QByteArray, list[QByteArray]] = {}
+        for k, v in [*response.headers, ("X-Hub-Status", str(response.status))]:
+            if k.lower() not in _HANDLED_HEADERS:
+                extra.setdefault(QByteArray(k.encode("latin-1")), []).append(QByteArray(v.encode("latin-1")))
+        job.setAdditionalResponseHeaders(extra)
+        buffer = QBuffer(job)  # parented to the job: lives exactly as long as Qt reads it
+        buffer.setData(QByteArray(response.body))
+        buffer.open(QIODevice.OpenModeFlag.ReadOnly)
+        content_type = response.header("content-type") or "application/octet-stream"
+        job.reply(QByteArray(content_type.encode("latin-1")), buffer)
+
+    def shutdown(self) -> None:
+        self._pool.shutdown(wait=False, cancel_futures=True)
+
+
+def _notify_running_instance() -> bool:
+    """True if another instance is running (and has been told to come to the front)."""
+    socket = QLocalSocket()
+    socket.connectToServer(INSTANCE_NAME)
+    if not socket.waitForConnected(500):
+        return False
+    socket.write(b"raise")
+    socket.waitForBytesWritten(500)
+    socket.disconnectFromServer()
+    return True
+
+
+def _listen_for_new_instances(window: QWebEngineView, parent: QObject) -> QLocalServer:
+    def bring_to_front():
+        server.nextPendingConnection().deleteLater()
+        window.showNormal()
+        window.raise_()
+        window.activateWindow()
+
+    server = QLocalServer(parent)
+    QLocalServer.removeServer(INSTANCE_NAME)  # stale socket left by a crashed instance
+    server.listen(INSTANCE_NAME)
+    server.newConnection.connect(bring_to_front)
+    return server
+
+
+def main() -> int:
+    register_scheme()
+    app = QApplication(sys.argv)
+    app.setApplicationName("Hub Pessoal")
+    app.setDesktopFileName("hubpessoal")
+
+    if _notify_running_instance():
+        return 0
+
+    dist = frontend_dist()
+    if not (dist / "index.html").is_file():
+        print(f"Frontend build not found at {dist} (run `npm run build` in frontend/).", file=sys.stderr)
+        return 1
+
+    from app.main import app as api  # imported late: a second instance never loads the backend
+    bridge = Bridge(api, dist)
+    bridge.start()
+
+    web_dir = config.HUB_DB_PATH.parent / "webengine"
+    profile = QWebEngineProfile("hubpessoal", app)
+    profile.setPersistentStoragePath(str(web_dir / "storage"))
+    profile.setCachePath(str(web_dir / "cache"))
+    handler = SchemeHandler(bridge, app)
+    profile.installUrlSchemeHandler(SCHEME, handler)
+    shim = QWebEngineScript()
+    shim.setName("hub-fetch-status")
+    shim.setSourceCode(FETCH_STATUS_SHIM)
+    shim.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentCreation)
+    shim.setWorldId(QWebEngineScript.ScriptWorldId.MainWorld)
+    profile.scripts().insert(shim)
+
+    window = QWebEngineView()
+    window.setPage(QWebEnginePage(profile, window))
+    window.setWindowTitle("Hub Pessoal")
+    window.resize(1280, 820)
+    _listen_for_new_instances(window, app)
+    window.load(QUrl(START_URL))
+    window.show()
+
+    code = app.exec()
+    del window  # the page must go before its profile
+    handler.shutdown()
+    bridge.stop()
+    return code
