@@ -1,0 +1,74 @@
+/* Transações page and side panel (see DESIGN.md: tables, inputs, buttons). */
+
+/* Inputs and selects: 36px, border-strong, radius 8. */
+.tx-input{
+  height:36px; width:100%; padding:0 10px;
+  background:var(--surface); color:var(--text);
+  border:1px solid var(--border-strong); border-radius:var(--radius-ctl);
+  font:inherit; font-size:14px;
+}
+.tx-input:hover{ border-color:var(--text-2); }
+textarea.tx-input{ height:auto; padding:8px 10px; resize:vertical; }
+
+/* Filter bar */
+.tx-filters{ display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:16px; }
+.tx-period{ display:flex; align-items:center; gap:12px; }
+.tx-filter{ width:auto; min-width:170px; }
+.tx-search{ position:relative; flex:1; min-width:200px; max-width:320px; display:block; }
+.tx-search svg{ position:absolute; left:10px; top:10px; color:var(--text-3); pointer-events:none; }
+.tx-search .tx-input{ padding-left:32px; }
+.tx-plus{ vertical-align:-3px; margin-right:2px; }
+
+/* Table: 44px rows, amounts right-aligned and tabular. */
+.tx-card{ padding:0; overflow-x:auto; }
+.tx-card > .note, .tx-card > .tx-error{ padding:20px; }
+.tx-table{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+.tx-table th{
+  font-size:12px; font-weight:500; color:var(--text-3); text-align:left;
+  padding:10px 12px; border-bottom:1px solid var(--border-strong); white-space:nowrap;
+}
+.tx-table td{ height:44px; padding:0 12px; border-bottom:1px solid var(--border); white-space:nowrap; }
+.tx-table tbody tr{ cursor:pointer; }
+.tx-table tbody tr:hover td{ background:var(--surface-2); }
+.tx-table tbody tr:last-child td{ border-bottom:0; }
+.tx-table th:first-child, .tx-table td:first-child{ padding-left:20px; }
+.tx-table th:last-child, .tx-table td:last-child{ padding-right:20px; }
+.tx-table .n{ text-align:right; }
+.tx-date, .tx-dim{ color:var(--text-3); }
+.tx-open{
+  background:none; border:0; padding:0; font:inherit; color:var(--text);
+  text-align:left; cursor:pointer; max-width:340px; overflow:hidden; text-overflow:ellipsis;
+}
+.tx-open:hover{ text-decoration:underline; }
+
+.tx-pager{ display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-top:16px; }
+
+/* Side panel */
+.tx-backdrop{ position:fixed; inset:0; background:color-mix(in srgb, var(--bg) 70%, transparent); z-index:30; }
+.tx-panel{
+  position:fixed; top:0; right:0; bottom:0; z-index:40;
+  width:min(440px, 100vw); overflow-y:auto;
+  background:var(--surface); border-left:1px solid var(--border-strong);
+  padding:20px;
+}
+.tx-panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.tx-panel-head .card-title{ margin:0; }
+.tx-icon-btn{
+  display:flex; align-items:center; justify-content:center; width:36px; height:36px;
+  border:0; border-radius:var(--radius-ctl); background:transparent; color:var(--text-2); cursor:pointer;
+}
+.tx-icon-btn:hover{ background:var(--surface-2); color:var(--text); }
+
+.tx-form{ display:flex; flex-direction:column; gap:14px; }
+.tx-kind{ align-self:flex-start; }
+.tx-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tx-field{ display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:500; color:var(--text-2); }
+.tx-error{ margin:0; font-size:13px; color:var(--expense); }
+.tx-actions{ display:flex; gap:8px; align-items:center; }
+.tx-confirm{
+  border:1px solid var(--border-strong); border-radius:var(--radius-ctl);
+  padding:12px; display:flex; flex-direction:column; gap:10px; font-size:14px;
+}
+.tx-confirm p{ margin:0; }
+.tx-danger{ border-color:var(--expense); color:var(--expense); }
+.tx-danger:hover{ background:color-mix(in srgb, var(--expense) 12%, transparent); }

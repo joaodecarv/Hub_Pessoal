@@ -18,6 +18,49 @@ export function getTransactions(limit = 50, offset = 0){
     return getJSON(`/api/banco/transactions?limit=${limit}&offset=${offset}`)
 }
 
+// Filtered, paged list for the Transações page. The body is a plain array and the
+// total matching the filters comes in the X-Total-Count header.
+export async function listTransactions({ year, month, accountId, categoryId, q, limit = 50, offset = 0 } = {}){
+    const params = new URLSearchParams({ limit, offset })
+    if (year) params.set('year', year)
+    if (month) params.set('month', month)
+    if (accountId) params.set('account_id', accountId)
+    if (categoryId) params.set('category_id', categoryId)
+    if (q) params.set('q', q)
+    const response = await fetch(`/api/banco/transactions?${params}`)
+    if (!response.ok) throw new Error(`API transactions failed: ${response.status}`)
+    return { items: await response.json(), total: Number(response.headers.get('X-Total-Count')) }
+}
+
+// Accounts, categories and goals the transaction form and filters choose from.
+export function getTransactionOptions(){
+    return getJSON(`/api/banco/transactions/options`)
+}
+
+// Writes surface the API's readable 422 message (`detail`) as the Error message.
+async function writeTransaction(path, method, body){
+    const response = await fetch(path, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+    })
+    if (response.ok) return response.status === 204 ? null : response.json()
+    const payload = await response.json().catch(() => null)
+    throw new Error(typeof payload?.detail === 'string' ? payload.detail : `Erro ${response.status}`)
+}
+
+export function createTransaction(body){
+    return writeTransaction(`/api/banco/transactions`, 'POST', body)
+}
+
+export function updateTransaction(id, body){
+    return writeTransaction(`/api/banco/transactions/${id}`, 'PUT', body)
+}
+
+export function deleteTransaction(id){
+    return writeTransaction(`/api/banco/transactions/${id}`, 'DELETE')
+}
+
 export function getSummary(year, month){
     const params = (year && month) ? `?year=${year}&month=${month}` : ''
     return getJSON(`/api/banco/summary${params}`)

@@ -97,37 +97,6 @@ def month_summary(year:int, month:int) -> dict:
     finally:
         conn.close()
         
-def recent_transactions(limit: int=50,offset: int=0)->list[dict]:
-    """Most-recent-first transactions, paged with limit/offset.
-
-      Banco's TransactionRepository.list() does the SQL and sorting; we translate
-      each Transaction into a JSON-ready dict. Two conversions matter:
-        - date  -> ISO string ("2026-05-12"), because JSON has no date type
-        - kind  -> its .value string ("expense"), not the enum object"""
-    conn = _connect()
-    try:
-        txs = repositories.TransactionRepository(conn).list(
-            sort=SortBy.DATE_DESC,
-            limit=limit,
-            offset=offset,
-        )
-        return [
-            {
-                "id": t.id,
-                "date": t.date.isoformat(),
-                "amount_cents": t.amount_cents,
-                "kind": t.kind.value,
-                "description": t.description,
-                "account_id": t.account_id,
-                "category_id": t.category_id,
-                "notes": t.notes,
-            }
-            for t in txs
-        ]
-    finally:
-        conn.close()
-        
-        
 def categories_with_totals(year:int, month:int)->list[dict]:
     """Per-category spend for the month (the donut chart), largest first.
 
