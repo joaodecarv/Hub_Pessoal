@@ -5,7 +5,7 @@
 async function getJSON(path, options){
     const response = await fetch(path, options)
     if(!response.ok){
-        throw new Error(`API ${path} failed: ${response.status}`)   
+        throw new Error(`Erro ${response.status} ao acessar ${path}`)   
     }
     return response.json()
 }
@@ -28,7 +28,7 @@ export async function listTransactions({ year, month, accountId, categoryId, q, 
     if (categoryId) params.set('category_id', categoryId)
     if (q) params.set('q', q)
     const response = await fetch(`/api/banco/transactions?${params}`)
-    if (!response.ok) throw new Error(`API transactions failed: ${response.status}`)
+    if (!response.ok) throw new Error(`Erro ${response.status} ao carregar as transações`)
     return { items: await response.json(), total: Number(response.headers.get('X-Total-Count')) }
 }
 
@@ -154,6 +154,19 @@ export function getDigest(topic){
     return getJSON(`/api/digest?topic=${topic}`)
 }
 
+// Surfaces the API's readable error (e.g. missing Gemini key) as the Error message.
 export function refreshDigest(topic){
-    return getJSON(`/api/digest/refresh?topic=${topic}`, {method: 'POST'})
+    return writeTransaction(`/api/digest/refresh?topic=${topic}`, 'POST')
+}
+
+export function getGeminiStatus(){
+    return getJSON(`/api/config/gemini`)
+}
+
+export function saveGeminiKey(apiKey){
+    return writeTransaction(`/api/config/gemini`, 'PUT', { api_key: apiKey })
+}
+
+export function getAppVersion(){
+    return getJSON(`/api/config/version`)
 }

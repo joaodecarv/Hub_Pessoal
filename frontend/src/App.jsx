@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import HubHome from './HubHome.jsx'
 import BancoDashboard from './BancoDashboard.jsx'
 import BancoTransactions from './BancoTransactions.jsx'
@@ -8,17 +8,28 @@ import Configuracoes from './Configuracoes.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 
 const NAV = [
-    { id: 'home', label: 'Home', icon: '◇' },
-    { id: 'dashboard', label: 'Dashboard', icon: '▦' },
-    { id: 'transactions', label: 'Transactions', icon: '≣' },
+    { id: 'home', label: 'Início', icon: '◇' },
+    { id: 'dashboard', label: 'Finanças', icon: '▦' },
+    { id: 'transactions', label: 'Transações', icon: '≣' },
     { id: 'goals', label: 'Metas & Orçamentos', icon: '◎' },
-    { id: 'ai', label: 'AI News', icon: '✦' },
-    { id: 'finance', label: 'Finance News', icon: '$' },
+    { id: 'news', label: 'Notícias', icon: '✦' },
     { id: 'settings', label: 'Configurações', icon: '⚙' },
 ]
 
 function App(){
     const [page, setPage] = useState('home')
+    const [newsTopic, setNewsTopic] = useState('ai')
+    const [settingsTab, setSettingsTab] = useState('accounts')
+
+    useEffect(() => {
+        document.title = `${NAV.find((n) => n.id === page).label} · Hub Pessoal`
+    }, [page])
+
+    function go(id, extra){
+        if (id === 'news' && extra) setNewsTopic(extra)
+        if (id === 'settings') setSettingsTab(extra ?? 'accounts')
+        setPage(id)
+    }
 
     return (
         <div className="app">
@@ -26,11 +37,11 @@ function App(){
                 <div className="brand">
                     <span className="brand-mark" /> Hub Pessoal
                 </div>
-                <nav className="nav">
+                <nav className="nav" aria-label="Principal">
                     {NAV.map((item) => (
                         <button key={item.id}
                                 className={`nav-item${page === item.id ? ' is-active' : ''}`}
-                                onClick={() => setPage(item.id)}>
+                                onClick={() => go(item.id)}>
                             <span className="nav-icon">{item.icon}</span>
                             <span className="nav-label">{item.label}</span>
                         </button>
@@ -40,13 +51,12 @@ function App(){
             </aside>
 
             <main className="content">
-                {page === 'home' && <HubHome onNavigate={setPage} />}
+                {page === 'home' && <HubHome onNavigate={go} />}
                 {page === 'dashboard' && <BancoDashboard />}
                 {page === 'transactions' && <BancoTransactions />}
                 {page === 'goals' && <GoalsBudgets />}
-                {page === 'ai' && <NewsPage topic="ai" />}
-                {page === 'finance' && <NewsPage topic="finance" />}
-                {page === 'settings' && <Configuracoes />}
+                {page === 'news' && <NewsPage key={newsTopic} topic={newsTopic} onTopic={setNewsTopic} onNavigate={go} />}
+                {page === 'settings' && <Configuracoes key={settingsTab} initialTab={settingsTab} />}
             </main>
         </div>
     )

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from app.version import get_version
 from app.feeds import digest, digest_store, gemini_key
 
 router = APIRouter(prefix="/api/digest", tags=["digest"])
@@ -39,6 +40,11 @@ config_router = APIRouter(prefix="/api/config", tags=["config"])
 
 class GeminiKeyBody(BaseModel):
     api_key: str
+
+
+@config_router.get("/version")
+def app_version():
+    return {"version": get_version()}
 
 
 @config_router.get("/gemini")
