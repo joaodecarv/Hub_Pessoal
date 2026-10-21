@@ -1,0 +1,98 @@
+/* Metas & Orçamentos page (see DESIGN.md: cards, tables, inputs, goal progress). */
+
+.gb-section-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.gb-section-title{ font-size:16px; font-weight:600; line-height:1.3; margin:0; }
+.gb-budgets-head{ margin-top:40px; }
+.gb-plus{ vertical-align:-3px; margin-right:2px; }
+.gb-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+.gb-input{
+  height:36px; width:100%; padding:0 10px;
+  background:var(--surface); color:var(--text);
+  border:1px solid var(--border-strong); border-radius:var(--radius-ctl);
+  font:inherit; font-size:14px;
+}
+.gb-input:hover{ border-color:var(--text-2); }
+textarea.gb-input{ height:auto; padding:8px 10px; resize:vertical; }
+.gb-error{ margin:0; font-size:13px; color:var(--expense); }
+.gb-actions{ display:flex; gap:8px; align-items:center; }
+.gb-danger{ border-color:var(--expense); color:var(--expense); }
+.gb-danger:hover{ background:color-mix(in srgb, var(--expense) 12%, transparent); }
+
+/* Shared progress bar (goals in --savings, budgets in --text, over limit in --warning). */
+.gb-bar{ height:6px; border-radius:3px; background:var(--surface-2); overflow:hidden; }
+.gb-bar > div{ height:100%; background:var(--savings); }
+
+/* Goal cards */
+.gb-goals{ display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:16px; align-items:start; }
+.gb-form, .gb-goals + .gb-archived{ margin-top:16px; }
+.gb-form{ margin-bottom:16px; }
+.gb-goal{ display:flex; flex-direction:column; gap:10px; }
+.gb-goal-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+.gb-goal-name{ font-size:15px; font-weight:600; margin:0; overflow-wrap:anywhere; }
+.gb-goal-status{ font-size:12px; font-weight:500; color:var(--text-2); white-space:nowrap; }
+.gb-goal-foot{ display:flex; justify-content:space-between; gap:12px; font-size:13px; color:var(--text-2); font-variant-numeric:tabular-nums; }
+.gb-goal-note{ margin:0; font-size:13px; color:var(--text-2); font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.gb-late .gb-bar > div{ background:var(--warning); }
+.gb-late .gb-goal-status{ color:var(--warning); }
+.gb-done .gb-bar > div{ background:var(--income); }
+.gb-done .gb-goal-status{ color:var(--income); }
+.gb-confirm{
+  border:1px solid var(--border-strong); border-radius:var(--radius-ctl);
+  padding:12px; display:flex; flex-direction:column; gap:10px; font-size:14px;
+}
+.gb-confirm p{ margin:0; }
+
+.gb-archived{ margin-top:24px; }
+.gb-archived summary{ cursor:pointer; font-size:14px; font-weight:500; color:var(--text-2); padding:8px 0; }
+.gb-archived summary:hover{ color:var(--text); }
+.gb-archived[open] summary{ margin-bottom:8px; }
+
+/* Goal form */
+.gb-form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+.gb-wide{ grid-column:1 / -1; }
+.gb-field{ display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:500; color:var(--text-2); }
+
+/* Budgets table: 44px rows, amounts right-aligned and tabular. */
+.gb-budgets{ padding:0; overflow-x:auto; }
+.gb-table{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+.gb-table th{
+  font-size:12px; font-weight:500; color:var(--text-3); text-align:left;
+  padding:10px 12px; border-bottom:1px solid var(--border-strong); white-space:nowrap;
+}
+.gb-table td{ min-height:44px; height:44px; padding:0 12px; border-bottom:1px solid var(--border); white-space:nowrap; }
+.gb-table tbody tr:hover td{ background:var(--surface-2); }
+.gb-table tfoot td{ font-weight:600; border-bottom:0; border-top:1px solid var(--border-strong); }
+.gb-table th:first-child, .gb-table td:first-child{ padding-left:20px; }
+.gb-table th:last-child, .gb-table td:last-child{ padding-right:20px; }
+.gb-table .n{ text-align:right; }
+.gb-table th, .gb-table td{ padding-left:10px; padding-right:10px; }
+.gb-use{ min-width:100px; width:20%; }
+.gb-use-cell{ display:flex; align-items:center; gap:10px; }
+.gb-use-cell .gb-bar{ flex:1; }
+.gb-use-cell .gb-bar > div{ background:var(--text); }
+.gb-pct{ font-size:12px; color:var(--text-3); min-width:36px; text-align:right; }
+.gb-over .gb-bar > div{ background:var(--warning); }
+.gb-over .gb-pct, .gb-over-text{ color:var(--warning); }
+
+.gb-limit{
+  background:none; border:0; padding:4px 6px; margin:0 -6px; font:inherit; color:var(--text);
+  border-radius:var(--radius-ctl); cursor:pointer;
+}
+.gb-limit:hover{ background:var(--surface-2); text-decoration:underline; }
+.gb-set{ color:var(--text-3); }
+.gb-inline{ display:inline-flex; gap:6px; align-items:center; }
+.gb-limit-input{ width:120px; text-align:right; }
+.gb-row-actions{ text-align:right; }
+.gb-table td.gb-avail{ white-space:normal; }
+.gb-link{ background:none; border:0; padding:4px 6px; font:inherit; font-size:13px; color:var(--text-2); cursor:pointer; border-radius:var(--radius-ctl); }
+.gb-link:hover{ color:var(--text); background:var(--surface-2); }
+.gb-danger-text{ color:var(--expense); }
+.gb-table .gb-remove-row td{ white-space:normal; padding-left:20px; font-size:13px; color:var(--text-2); background:var(--surface-2); }
+.gb-remove-btns{ display:inline-flex; gap:4px; margin-left:12px; }
+.gb-hint{ margin:0; padding:12px 20px; border-top:1px solid var(--border); }
+
+@media (max-width:640px){
+  .gb-form-grid{ grid-template-columns:1fr; }
+  .gb-goals{ grid-template-columns:1fr; }
+}

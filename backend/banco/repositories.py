@@ -421,7 +421,7 @@ class BudgetRepository:
                ORDER BY starts_on DESC LIMIT 1""",
             (category_id, starts_on),
         ).fetchone()
-        return _row_to_budget(r) if r else None
+        return _row_to_budget(r) if r and r["month_cents"] > 0 else None
 
     def list_effective(self, year: int, month: int) -> list[Budget]:
         """All budgets effective in (year, month), one per category."""
@@ -436,7 +436,8 @@ class BudgetRepository:
                       GROUP BY category_id
                  ) latest_b
                    ON b.category_id = latest_b.category_id
-                  AND b.starts_on   = latest_b.latest""",
+                  AND b.starts_on   = latest_b.latest
+                WHERE b.month_cents > 0""",
             (starts_on,),
         ).fetchall()
         return [_row_to_budget(r) for r in rows]
@@ -449,6 +450,18 @@ class BudgetRepository:
             "DELETE FROM budgets WHERE category_id = ? AND starts_on = ?",
             (category_id, _first_of_month(year, month)),
         )
+
+    def end_from_month(self, category_id: int, year: int, month: int) -> None:
+        """Stop budgeting the category from this month onward, leaving earlier months alone.
+        Drops every budget starting in or after the month; if an earlier one would still
+        apply, a zero-limit row at the month masks it. A zero limit means "no budget" to
+        get_effective, list_effective and ReportService.budget_progress."""
+        self.conn.execute(
+            "DELETE FROM budgets WHERE category_id = ? AND starts_on >= ?",
+            (category_id, _first_of_month(year, month)),
+        )
+        if self.get_effective(category_id, year, month) is not None:
+            self.set_for_month(category_id, year, month, 0)
 
 
 # ---------- recurring templates ----------

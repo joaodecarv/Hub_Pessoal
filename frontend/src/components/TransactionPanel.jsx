@@ -173,7 +173,7 @@ function TransactionPanel({ tx, options, onClose, onSaved }){
                     )}
 
                     {form.kind === 'savings' && (
-                        <label className="tx-field">Meta
+                        <label className="tx-field">Conta para a meta
                             <select className="tx-input" value={form.goalId} onChange={set('goalId')}>
                                 <option value="">Nenhuma</option>
                                 {goals.map((g) => (
