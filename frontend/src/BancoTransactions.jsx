@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Upload } from 'lucide-react'
 import { listTransactions, getTransactionOptions } from './api.js'
 import Money from './components/Money.jsx'
 import DateBR from './components/DateBR.jsx'
 import MonthSelector from './components/MonthSelector.jsx'
 import TransactionPanel from './components/TransactionPanel.jsx'
+import ImportFlow from './components/ImportFlow.jsx'
 import './transactions.css'
 
 const PAGE_SIZE = 50
@@ -26,6 +27,7 @@ function BancoTransactions(){
     const [error, setError] = useState('')
     const [reloads, setReloads] = useState(0)
     const [panel, setPanel] = useState(null)  // null = closed, { tx } = open (tx null = new)
+    const [importing, setImporting] = useState(false)
 
     useEffect(() => { getTransactionOptions().then(setOptions) }, [])
 
@@ -62,9 +64,14 @@ function BancoTransactions(){
                     <h1 className="page-title">Transações</h1>
                     <p className="page-subtitle">Mais recentes primeiro. Clique numa linha para editar.</p>
                 </div>
-                <button className="btn btn-accent" onClick={() => setPanel({ tx: null })} disabled={!options}>
-                    <Plus size={16} aria-hidden="true" className="tx-plus" /> Nova
-                </button>
+                <div className="tx-head-actions">
+                    <button className="btn" onClick={() => setImporting(true)} disabled={!options}>
+                        <Upload size={16} aria-hidden="true" className="tx-plus" /> Importar
+                    </button>
+                    <button className="btn btn-accent" onClick={() => setPanel({ tx: null })} disabled={!options}>
+                        <Plus size={16} aria-hidden="true" className="tx-plus" /> Nova
+                    </button>
+                </div>
             </div>
 
             <div className="tx-filters">
@@ -140,6 +147,11 @@ function BancoTransactions(){
                     <button className="btn" disabled={page === 0} onClick={() => setPage(page - 1)}>Anterior</button>
                     <button className="btn" disabled={last >= total} onClick={() => setPage(page + 1)}>Próxima</button>
                 </div>
+            )}
+
+            {importing && (
+                <ImportFlow options={options} onClose={() => setImporting(false)}
+                            onDone={() => { setImporting(false); setReloads((n) => n + 1) }} />
             )}
 
             {panel && (

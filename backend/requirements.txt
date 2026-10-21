@@ -4,3 +4,4 @@ python_dotenv
 feedparser
 google-genai
 ofxparse>=0.21
+python-multipart

@@ -18,6 +18,7 @@ textarea.tx-input{ height:auto; padding:8px 10px; resize:vertical; }
 .tx-search svg{ position:absolute; left:10px; top:10px; color:var(--text-3); pointer-events:none; }
 .tx-search .tx-input{ padding-left:32px; }
 .tx-plus{ vertical-align:-3px; margin-right:2px; }
+.tx-head-actions{ display:flex; gap:8px; }
 
 /* Table: 44px rows, amounts right-aligned and tabular. */
 .tx-card{ padding:0; overflow-x:auto; }

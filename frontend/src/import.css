@@ -1,0 +1,27 @@
+/* Import flow (side panel opened from Transações). Reuses the tx- panel, form and table styles. */
+
+.tx-panel.imp-panel{ width:min(860px, 100vw); }
+.imp-lead{ margin:0 0 4px; font-size:14px; color:var(--text-2); }
+.imp-summary{ margin:0; font-size:16px; font-weight:500; }
+.imp-file{ height:auto; padding:6px 10px; }
+.imp-check{ display:flex; align-items:center; gap:8px; font-size:14px; color:var(--text-2); }
+
+.imp-sample, .imp-table-wrap{
+  overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-ctl);
+}
+.imp-sample .tx-table td{ height:36px; }
+.imp-sample .tx-table th:first-child, .imp-sample .tx-table td:first-child,
+.imp-sample .tx-table th:last-child, .imp-sample .tx-table td:last-child{ padding-left:12px; padding-right:12px; }
+
+.imp-table-wrap{ margin:12px 0 16px; }
+.imp-table tbody tr{ cursor:default; }
+.imp-table th:first-child, .imp-table td:first-child{ padding-left:12px; padding-right:4px; width:32px; }
+.imp-table th:last-child, .imp-table td:last-child{ padding-right:12px; }
+.imp-table .imp-cat{ height:32px; min-width:150px; }
+.imp-desc{ display:inline-block; max-width:260px; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
+.imp-dup td{ color:var(--text-3); }
+.imp-dup .imp-desc{ color:var(--text-3); }
+.imp-badge{
+  margin-left:8px; padding:2px 8px; border-radius:var(--radius-ctl);
+  background:var(--surface-2); color:var(--text-2); font-size:12px; font-weight:500; vertical-align:middle;
+}
