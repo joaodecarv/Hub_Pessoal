@@ -118,7 +118,8 @@ def delete_account(account_id: int):
         if count:
             raise HTTPException(
                 409,
-                f"A conta {account.name} tem {count} transações e não pode ser excluída. "
+                f"A conta {account.name} tem {count} {'transação' if count == 1 else 'transações'} "
+                "e não pode ser excluída. "
                 "Exclua ou mova as transações antes.",
             )
         with db.transaction(conn):
