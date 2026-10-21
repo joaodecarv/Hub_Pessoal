@@ -4,9 +4,9 @@ import Money from './components/Money.jsx'
 import Timestamp from './components/Timestamp.jsx'
 
 function digestStatus(d){
-    if (d === undefined) return <span className="dim">Loading…</span>
-    if (d === null) return <span className="muted">No digest yet</span>
-    return <span className="muted">Updated <Timestamp iso={d.updated_at} /></span>
+    if (d === undefined) return <span className="dim">Carregando…</span>
+    if (d === null) return <span className="muted">Nenhum resumo ainda</span>
+    return <span className="muted">Atualizado <Timestamp iso={d.updated_at} /></span>
 }
 
 function HubHome({ onNavigate }){
@@ -25,32 +25,32 @@ function HubHome({ onNavigate }){
             <div className="page-head">
                 <div>
                     <h1 className="page-title">Hub Pessoal</h1>
-                    <p className="page-subtitle">Your finances and news in one place</p>
+                    <p className="page-subtitle">Suas finanças e notícias em um só lugar</p>
                 </div>
             </div>
 
             <div className="home-grid">
                 <button className="entry" onClick={() => onNavigate('dashboard')}>
                     <span className="entry-icon">▦</span>
-                    <span className="entry-name">Finances</span>
-                    <span className="dim">Net this month →</span>
+                    <span className="entry-name">Finanças</span>
+                    <span className="dim">Saldo do mês →</span>
                     {summary
                         ? <span className="entry-big"><Money cents={summary.current.net_cents} /></span>
-                        : <span className="dim">Loading…</span>}
+                        : <span className="dim">Carregando…</span>}
                 </button>
 
-                <button className="entry" onClick={() => onNavigate('ai')}>
+                <button className="entry" onClick={() => onNavigate('news', 'ai')}>
                     <span className="entry-icon">✦</span>
-                    <span className="entry-name">AI News</span>
+                    <span className="entry-name">Notícias de IA</span>
                     {digestStatus(ai)}
-                    <span className="dim" style={{ marginTop: 'auto' }}>Open digest →</span>
+                    <span className="dim" style={{ marginTop: 'auto' }}>Abrir resumo →</span>
                 </button>
 
-                <button className="entry" onClick={() => onNavigate('finance')}>
+                <button className="entry" onClick={() => onNavigate('news', 'finance')}>
                     <span className="entry-icon">$</span>
-                    <span className="entry-name">Finance News</span>
+                    <span className="entry-name">Notícias de Finanças</span>
                     {digestStatus(fin)}
-                    <span className="dim" style={{ marginTop: 'auto' }}>Open digest →</span>
+                    <span className="dim" style={{ marginTop: 'auto' }}>Abrir resumo →</span>
                 </button>
             </div>
         </>

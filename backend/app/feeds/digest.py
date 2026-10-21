@@ -1,10 +1,10 @@
 from google import genai
-from app import config
+from app.feeds import gemini_key
 from app.feeds.fetcher import fetch_topic
 
-#one client, created once and reused for every call 
 
-client = genai.Client(api_key=config.GEMINI_API_KEY)
+class MissingKeyError(Exception):
+    """No Gemini key is configured."""
 
 TOPIC_LANGUAGE = {
     "finance": "pt",  # Portuguese
@@ -20,6 +20,9 @@ def _format_articles(articles):
 
 def build_digest(topic):
       """Fetch articles for a topic and ask Gemini for a Markdown summary."""
+      key = gemini_key.get_key()
+      if not key:
+          raise MissingKeyError
       articles = fetch_topic(topic)
       language = TOPIC_LANGUAGE[topic]
   
@@ -36,7 +39,7 @@ def build_digest(topic):
       )
 
 
-      resp = client.models.generate_content(
+      resp = genai.Client(api_key=key).models.generate_content(
           model="gemini-2.5-flash",
           contents=prompt,
       )

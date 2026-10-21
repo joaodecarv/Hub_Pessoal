@@ -2,16 +2,20 @@ import { useState } from 'react'
 import AccountsTab from './components/AccountsTab.jsx'
 import CategoriesTab from './components/CategoriesTab.jsx'
 import RulesTab from './components/RulesTab.jsx'
+import GeminiTab from './components/GeminiTab.jsx'
+import AboutTab from './components/AboutTab.jsx'
 import './settings.css'
 
 const TABS = [
     { id: 'accounts', label: 'Contas', Panel: AccountsTab },
     { id: 'categories', label: 'Categorias', Panel: CategoriesTab },
     { id: 'rules', label: 'Regras', Panel: RulesTab },
+    { id: 'gemini', label: 'Gemini', Panel: GeminiTab },
+    { id: 'about', label: 'Sobre', Panel: AboutTab },
 ]
 
-function Configuracoes(){
-    const [tab, setTab] = useState('accounts')
+function Configuracoes({ initialTab = 'accounts' }){
+    const [tab, setTab] = useState(initialTab)
     const { Panel } = TABS.find((t) => t.id === tab)
 
     return (
@@ -19,7 +23,7 @@ function Configuracoes(){
             <div className="page-head">
                 <div>
                     <h1 className="page-title">Configurações</h1>
-                    <p className="page-subtitle">Contas, categorias e regras de categorização.</p>
+                    <p className="page-subtitle">Contas, categorias, regras de categorização, chave do Gemini e informações do app.</p>
                 </div>
             </div>
 

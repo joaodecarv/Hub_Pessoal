@@ -11,9 +11,6 @@ way a browser would, without caring about internal function wiring.
 import os
 import sqlite3
 
-# app.feeds.digest builds a Gemini client at import time, which requires a key.
-os.environ.setdefault("GEMINI_API_KEY", "test-key")
-
 import pytest
 from fastapi.testclient import TestClient
 
