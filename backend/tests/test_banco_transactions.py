@@ -97,6 +97,7 @@ INVALID = [
     (dict(category_id=3), "Categoria"),   # Salário is an income category, tx is an expense
     (dict(category_id=999), "Categoria"),
     (dict(goal_id=999), "Meta"),
+    (dict(goal_id=1), "poupança"),  # an expense cannot fund a goal
     (dict(description="   "), "Descrição"),
     (dict(kind="transfer"), "Tipo"),
     (dict(is_fixed_override="sim"), "Fixa"),

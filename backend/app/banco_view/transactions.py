@@ -76,8 +76,11 @@ def _parse(conn, body: dict) -> tuple[Transaction, int | None]:
         errors.append("Fixa/variável deve ser verdadeiro, falso ou vazio")
 
     goal_id = body.get("goal_id")
-    if goal_id is not None and repositories.GoalRepository(conn).get(goal_id) is None:
-        errors.append("Meta não encontrada")
+    if goal_id is not None:
+        if repositories.GoalRepository(conn).get(goal_id) is None:
+            errors.append("Meta não encontrada")
+        elif kind != TransactionKind.SAVINGS:
+            errors.append("Meta só pode ser usada em transações de poupança")
 
     if errors:
         raise HTTPException(422, "; ".join(errors))

@@ -141,6 +141,18 @@ def test_duplicate_category_name_is_409_and_unknown_is_404(client):
     assert client.get(f"{BASE}/categories/99/impact").status_code == 404
 
 
+def test_category_kind_cannot_change_while_it_has_transactions(client):
+    resp = client.put(f"{BASE}/categories/2", json=_category(name="Mercado", kind="income"))
+
+    assert resp.status_code == 409
+    assert "transaç" in resp.json()["detail"]
+    assert {c["id"]: c["kind"] for c in client.get(f"{BASE}/categories").json()}[2] == "expense"
+
+    # Other fields still change, and an unused category may change kind.
+    assert client.put(f"{BASE}/categories/2", json=_category(name="Feira", kind="expense")).status_code == 200
+    assert client.put(f"{BASE}/categories/4", json=_category(name="Viagem", kind="income")).status_code == 200
+
+
 def test_delete_impact_counts_transactions_rules_and_budgets(client):
     _add_rules(("padaria", 2), ("super", 2), ("uber", 4))
 

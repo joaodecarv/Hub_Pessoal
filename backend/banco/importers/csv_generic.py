@@ -62,6 +62,7 @@ def parse(path: Path, account: Account, mapping: CsvMapping) -> list[Transaction
         raise ValueError("Mapping must define either amount_col or debit/credit columns")
 
     transactions: list[Transaction] = []
+    occurrences: dict[tuple, int] = {}
     with open(path, newline="", encoding=mapping.encoding) as f:
         if mapping.has_header:
             reader = csv.DictReader(f, delimiter=mapping.delimiter)
@@ -90,7 +91,11 @@ def parse(path: Path, account: Account, mapping: CsvMapping) -> list[Transaction
             tx_date = datetime.strptime(date_raw, mapping.date_format).date()
             kind = TransactionKind.EXPENSE if amount < 0 else TransactionKind.INCOME
             amount_cents = to_cents(abs(amount))
-            import_hash = make_hash(account.id, "csv", tx_date.isoformat(), amount_cents, kind.value, description)
+            key = (tx_date.isoformat(), amount_cents, kind.value, description)
+            # Identical rows in one file are distinct transactions: the Nth repeat gets its
+            # index in the hash. The first keeps the plain hash, so earlier imports still dedupe.
+            n = occurrences[key] = occurrences.get(key, -1) + 1
+            import_hash = make_hash(account.id, "csv", *key, *([n] if n else []))
 
             transactions.append(Transaction(
                 date=tx_date,

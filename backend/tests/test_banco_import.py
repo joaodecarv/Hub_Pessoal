@@ -224,16 +224,31 @@ def test_commit_with_no_rows_or_unknown_account_is_422(client):
     assert _commit(client, [{}], account_id=99).status_code == 422
 
 
-def test_a_repeated_row_inside_one_file_is_flagged_and_imported_once(client):
+def test_identical_csv_rows_in_one_file_are_all_imported_and_reimporting_adds_none(client):
     content = (FIXTURES / "extrato.csv").read_bytes()
     doubled = content + content.split(b"\n", 1)[1]  # same three lines twice
 
-    body = client.post(PREVIEW, data={"account_id": "1", "mapping": json.dumps(CSV_MAPPING)},
-                       files={"file": ("extrato.csv", doubled)}).json()
-    assert [r["duplicate"] for r in body["rows"]] == [False] * 3 + [True] * 3
+    def preview():
+        return client.post(PREVIEW, data={"account_id": "1", "mapping": json.dumps(CSV_MAPPING)},
+                           files={"file": ("extrato.csv", doubled)}).json()
 
-    result = _commit(client, _chosen(body), mapping=CSV_MAPPING).json()
-    assert result == {"imported": 3, "skipped": 3}
+    first = preview()
+    assert [r["duplicate"] for r in first["rows"]] == [False] * 6
+    assert len({r["import_hash"] for r in first["rows"]}) == 6
+
+    assert _commit(client, _chosen(first), mapping=CSV_MAPPING).json() == {"imported": 6, "skipped": 0}
+
+    again = preview()
+    assert [r["duplicate"] for r in again["rows"]] == [True] * 6
+    assert _commit(client, _chosen(again), mapping=CSV_MAPPING).json() == {"imported": 0, "skipped": 6}
+
+
+def test_first_occurrence_of_a_csv_row_keeps_the_hash_of_earlier_versions(client):
+    from banco.importers import make_hash
+    rows = _preview(client, "extrato.csv", mapping=CSV_MAPPING).json()["rows"]
+
+    zaffari = next(r for r in rows if r["description"] == "SUPERMERCADO ZAFFARI")
+    assert zaffari["import_hash"] == make_hash(1, "csv", "2026-03-05", 4590, "expense", "SUPERMERCADO ZAFFARI")
 
 
 def test_commit_uses_the_category_edited_in_the_preview(client):

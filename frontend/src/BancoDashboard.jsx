@@ -47,7 +47,7 @@ function BancoDashboard(){
             <div className="page-head">
                 <div>
                     <h1 className="page-title">Minhas finanças</h1>
-                    <p className="page-subtitle">Visão somente leitura dos dados do Banco</p>
+                    <p className="page-subtitle">Resumo do mês: receitas, despesas, poupança e metas</p>
                 </div>
                 <MonthSelector year={year} month={month}
                                onChange={(y, m) => { setYear(y); setMonth(m) }} />

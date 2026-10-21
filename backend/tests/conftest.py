@@ -42,8 +42,8 @@ SEED_TRANSACTIONS = [
 
 
 def _seed(db_path):
-    """Create the temp DB with Banco's schema and our known rows (writable here;
-    the app will only ever read it)."""
+    """Create the temp DB with Banco's schema and our known rows. The app reads and
+    writes this file; each test gets a fresh copy."""
     conn = sqlite3.connect(db_path)
     try:
         conn.executescript(SCHEMA)

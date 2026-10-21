@@ -190,9 +190,17 @@ def create_category(body: dict = Body(...)):
 def update_category(category_id: int, body: dict = Body(...)):
     conn = _connect()
     try:
-        _category_or_404(conn, category_id)
+        current = _category_or_404(conn, category_id)
         category = _parse_category(body)
         category.id = category_id
+        if category.kind != current.kind:
+            count = _count_for_category(conn, "transactions", category_id)
+            if count:
+                raise HTTPException(
+                    409,
+                    f"A categoria {current.name} tem {count} {'transação' if count == 1 else 'transações'} "
+                    "e seu tipo não pode ser alterado. Mova as transações para outra categoria antes.",
+                )
         _save(conn, lambda: repositories.CategoryRepository(conn).update(category),
               f"Já existe uma categoria chamada {category.name}")
         return _category_to_dict(category)
