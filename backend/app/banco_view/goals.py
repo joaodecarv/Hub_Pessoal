@@ -12,7 +12,9 @@ from fastapi import APIRouter, Body, HTTPException, Response
 from banco import db, repositories, services
 from banco.models import Goal
 
-from app.banco_view.adapter import _connect
+from app.banco_view.common import (
+    connection, get_or_404, is_positive_int, raise_422,
+)
 
 router = APIRouter(prefix="/goals")
 
@@ -43,11 +45,8 @@ def _all_goals(conn) -> list[dict]:
 @router.get("/overview")
 def goals_overview():
     """Every goal, archived ones included, with progress. Archived goals come last."""
-    conn = _connect()
-    try:
+    with connection() as conn:
         return _all_goals(conn)
-    finally:
-        conn.close()
 
 
 def _parse(body: dict) -> Goal:
@@ -59,7 +58,7 @@ def _parse(body: dict) -> Goal:
         errors.append("Nome é obrigatório")
 
     target = body.get("target_cents")
-    if not isinstance(target, int) or isinstance(target, bool) or target <= 0:
+    if not is_positive_int(target):
         errors.append("Valor alvo deve ser maior que zero")
 
     deadline = None
@@ -69,8 +68,7 @@ def _parse(body: dict) -> Goal:
         except (TypeError, ValueError):
             errors.append("Prazo inválido")
 
-    if errors:
-        raise HTTPException(422, "; ".join(errors))
+    raise_422(errors)
 
     return Goal(name=name.strip(), target_cents=target, deadline=deadline, notes=body.get("notes") or "")
 
@@ -80,28 +78,21 @@ def _one(conn, goal_id: int) -> dict:
 
 
 def _get_or_404(conn, goal_id: int) -> Goal:
-    goal = repositories.GoalRepository(conn).get(goal_id)
-    if goal is None:
-        raise HTTPException(404, "Meta não encontrada")
-    return goal
+    return get_or_404(repositories.GoalRepository(conn).get(goal_id), "Meta não encontrada")
 
 
 @router.post("", status_code=201)
 def create_goal(body: dict = Body(...)):
-    conn = _connect()
-    try:
+    with connection() as conn:
         goal = _parse(body)
         with db.transaction(conn):
             repositories.GoalRepository(conn).add(goal)
         return _one(conn, goal.id)
-    finally:
-        conn.close()
 
 
 @router.put("/{goal_id}")
 def update_goal(goal_id: int, body: dict = Body(...)):
-    conn = _connect()
-    try:
+    with connection() as conn:
         current = _get_or_404(conn, goal_id)
         goal = _parse(body)
         goal.id = goal_id
@@ -109,14 +100,11 @@ def update_goal(goal_id: int, body: dict = Body(...)):
         with db.transaction(conn):
             repositories.GoalRepository(conn).update(goal)
         return _one(conn, goal_id)
-    finally:
-        conn.close()
 
 
 @router.put("/{goal_id}/archive")
 def archive_goal(goal_id: int, body: dict = Body(...)):
-    conn = _connect()
-    try:
+    with connection() as conn:
         goal = _get_or_404(conn, goal_id)
         archived = body.get("archived")
         if not isinstance(archived, bool):
@@ -125,18 +113,13 @@ def archive_goal(goal_id: int, body: dict = Body(...)):
         with db.transaction(conn):
             repositories.GoalRepository(conn).update(goal)
         return _one(conn, goal_id)
-    finally:
-        conn.close()
 
 
 @router.delete("/{goal_id}", status_code=204)
 def delete_goal(goal_id: int):
     """Removes the goal and (by cascade) its deposit links; the transactions stay."""
-    conn = _connect()
-    try:
+    with connection() as conn:
         _get_or_404(conn, goal_id)
         with db.transaction(conn):
             repositories.GoalRepository(conn).delete(goal_id)
         return Response(status_code=204)
-    finally:
-        conn.close()

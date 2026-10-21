@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app import bootstrap
 from app.banco_view.router import router as banco_router
-from app.banco_view.cadastros import router as cadastros_router
 from app.feeds.router import router as digest_router, config_router
 
 
@@ -24,7 +23,6 @@ app.add_middleware(
 app.include_router(digest_router)
 app.include_router(config_router)
 app.include_router(banco_router)
-app.include_router(cadastros_router)
 
 @app.get("/api/health")
 def health():

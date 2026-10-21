@@ -9,7 +9,9 @@ from fastapi import APIRouter, Body, HTTPException, Response
 from banco import db, repositories, services
 from banco.models import TransactionKind
 
-from app.banco_view.adapter import _connect
+from app.banco_view.common import (
+    connection, get_or_404, is_int, is_positive_int,
+)
 
 router = APIRouter(prefix="/budgets")
 
@@ -20,42 +22,32 @@ def _check_month(year: int, month: int) -> None:
 
 
 def _expense_category_or_error(conn, category_id: int):
-    category = repositories.CategoryRepository(conn).get(category_id)
-    if category is None:
-        raise HTTPException(404, "Categoria não encontrada")
+    category = get_or_404(repositories.CategoryRepository(conn).get(category_id), "Categoria não encontrada")
     if category.kind != TransactionKind.EXPENSE:
         raise HTTPException(422, "Só categorias de despesa têm orçamento")
     return category
 
 
-def _is_int(value) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool)
-
-
 @router.put("/{category_id}")
 def set_budget(category_id: int, body: dict = Body(...)):
     """Set the category's monthly limit from `year`/`month` onward."""
-    conn = _connect()
-    try:
+    with connection() as conn:
         _expense_category_or_error(conn, category_id)
         year, month, limit = body.get("year"), body.get("month"), body.get("limit_cents")
-        if not (_is_int(year) and _is_int(month)):
+        if not (is_int(year) and is_int(month)):
             raise HTTPException(422, "Mês inválido")
         _check_month(year, month)
-        if not _is_int(limit) or limit <= 0:
+        if not is_positive_int(limit):
             raise HTTPException(422, "Limite deve ser maior que zero")
         with db.transaction(conn):
             repositories.BudgetRepository(conn).set_for_month(category_id, year, month, limit)
         return {"category_id": category_id, "year": year, "month": month, "limit_cents": limit}
-    finally:
-        conn.close()
 
 
 @router.delete("/{category_id}", status_code=204)
 def remove_budget(category_id: int, year: int | None = None, month: int | None = None):
     """Stop budgeting the category from `year`/`month` onward."""
-    conn = _connect()
-    try:
+    with connection() as conn:
         _expense_category_or_error(conn, category_id)
         if year is None or month is None:
             raise HTTPException(422, "Mês inválido")
@@ -63,8 +55,6 @@ def remove_budget(category_id: int, year: int | None = None, month: int | None =
         with db.transaction(conn):
             repositories.BudgetRepository(conn).end_from_month(category_id, year, month)
         return Response(status_code=204)
-    finally:
-        conn.close()
 
 
 @router.get("")
@@ -72,8 +62,7 @@ def list_budgets(year: int, month: int):
     """Every expense category for the month: its effective limit (null if none), the
     month it starts in, and what was spent. Budgeted categories come first."""
     _check_month(year, month)
-    conn = _connect()
-    try:
+    with connection() as conn:
         effective = {b.category_id: b for b in repositories.BudgetRepository(conn).list_effective(year, month)}
         spent = {
             s.category_id: s.total_cents
@@ -92,5 +81,3 @@ def list_budgets(year: int, month: int):
             })
         rows.sort(key=lambda r: (r["budget_cents"] is None, r["category_name"].lower()))
         return rows
-    finally:
-        conn.close()

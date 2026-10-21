@@ -21,7 +21,9 @@ from banco.importers.csv_generic import CsvMapping
 from banco.models import Transaction, TransactionKind
 from banco.services import RuleService
 
-from app.banco_view.adapter import _connect
+from app.banco_view.common import (
+    connection, is_positive_int, raise_422,
+)
 
 router = APIRouter(prefix="/import")
 
@@ -135,8 +137,7 @@ async def preview(
 ):
     content = await file.read()
     filename = file.filename or ""
-    conn = _connect()
-    try:
+    with connection() as conn:
         account = repositories.AccountRepository(conn).get(account_id)
         if account is None:
             raise HTTPException(422, "Conta não encontrada")
@@ -183,8 +184,6 @@ async def preview(
             "mapping": dataclasses.asdict(csv_mapping) if csv_mapping else None,
             "rows": rows,
         }
-    finally:
-        conn.close()
 
 
 def _parse_rows(conn, account_id: int, raw_rows) -> list[Transaction]:
@@ -200,7 +199,7 @@ def _parse_rows(conn, account_id: int, raw_rows) -> list[Transaction]:
         problems: list[str] = []
 
         amount = row.get("amount_cents")
-        if not isinstance(amount, int) or isinstance(amount, bool) or amount <= 0:
+        if not is_positive_int(amount):
             problems.append("valor deve ser maior que zero")
         try:
             parsed_date = date.fromisoformat(row.get("date"))
@@ -233,15 +232,13 @@ def _parse_rows(conn, account_id: int, raw_rows) -> list[Transaction]:
             account_id=account_id, category_id=category_id, import_hash=import_hash,
         ))
 
-    if errors:
-        raise HTTPException(422, "; ".join(errors))
+    raise_422(errors)
     return transactions
 
 
 @router.post("/commit")
 def commit(body: dict = Body(...)):
-    conn = _connect()
-    try:
+    with connection() as conn:
         account_id = body.get("account_id")
         if repositories.AccountRepository(conn).get(account_id) is None:
             raise HTTPException(422, "Conta não encontrada")
@@ -266,5 +263,3 @@ def commit(body: dict = Body(...)):
                 tx_repo.add(tx)
                 imported += 1
         return {"imported": imported, "skipped": skipped}
-    finally:
-        conn.close()

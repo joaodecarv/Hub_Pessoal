@@ -12,7 +12,9 @@ from fastapi import APIRouter, Body, HTTPException, Query, Response
 from banco import db, repositories
 from banco.models import Transaction, TransactionKind
 
-from app.banco_view.adapter import _connect
+from app.banco_view.common import (
+    connection, get_or_404, is_positive_int, raise_422,
+)
 
 router = APIRouter(prefix="/transactions")
 
@@ -38,7 +40,7 @@ def _parse(conn, body: dict) -> tuple[Transaction, int | None]:
     errors: list[str] = []
 
     amount = body.get("amount_cents")
-    if not isinstance(amount, int) or isinstance(amount, bool) or amount <= 0:
+    if not is_positive_int(amount):
         errors.append("Valor deve ser maior que zero")
 
     try:
@@ -82,8 +84,7 @@ def _parse(conn, body: dict) -> tuple[Transaction, int | None]:
         elif kind != TransactionKind.SAVINGS:
             errors.append("Meta só pode ser usada em transações de poupança")
 
-    if errors:
-        raise HTTPException(422, "; ".join(errors))
+    raise_422(errors)
 
     return Transaction(
         date=parsed_date,
@@ -106,18 +107,14 @@ def _sync_goal(conn, tx_id: int, goal_id: int | None) -> None:
 
 
 def _get_or_404(conn, tx_id: int) -> Transaction:
-    tx = repositories.TransactionRepository(conn).get(tx_id)
-    if tx is None:
-        raise HTTPException(404, "Transação não encontrada")
-    return tx
+    return get_or_404(repositories.TransactionRepository(conn).get(tx_id), "Transação não encontrada")
 
 
 @router.get("/options")
 def get_options():
     """Everything the transaction form and filter bar choose from, in one call.
     Declared before "/{tx_id}" so "options" is not parsed as an id."""
-    conn = _connect()
-    try:
+    with connection() as conn:
         return {
             "accounts": [
                 {"id": a.id, "name": a.name, "kind": a.kind.value}
@@ -133,8 +130,6 @@ def get_options():
                 for g in repositories.GoalRepository(conn).list(include_archived=True)
             ],
         }
-    finally:
-        conn.close()
 
 
 @router.get("")
@@ -158,8 +153,7 @@ def list_transactions(
         date_from = date(year, first_month, 1)
         date_to = date(year, last_month, calendar.monthrange(year, last_month)[1])
 
-    conn = _connect()
-    try:
+    with connection() as conn:
         matching = repositories.TransactionRepository(conn).list(
             date_from=date_from, date_to=date_to,
             account_id=account_id, category_id=category_id,
@@ -168,37 +162,28 @@ def list_transactions(
         goal_of = dict(conn.execute("SELECT transaction_id, goal_id FROM goal_contributions").fetchall())
         response.headers["X-Total-Count"] = str(len(matching))
         return [_to_dict(t, goal_of.get(t.id)) for t in matching[offset:offset + limit]]
-    finally:
-        conn.close()
 
 
 @router.post("", status_code=201)
 def create_transaction(body: dict = Body(...)):
-    conn = _connect()
-    try:
+    with connection() as conn:
         tx, goal_id = _parse(conn, body)
         with db.transaction(conn):
             repositories.TransactionRepository(conn).add(tx)
             _sync_goal(conn, tx.id, goal_id)
         return _to_dict(tx, goal_id)
-    finally:
-        conn.close()
 
 
 @router.get("/{tx_id}")
 def get_transaction(tx_id: int):
-    conn = _connect()
-    try:
+    with connection() as conn:
         tx = _get_or_404(conn, tx_id)
         return _to_dict(tx, repositories.GoalRepository(conn).contribution_for(tx_id))
-    finally:
-        conn.close()
 
 
 @router.put("/{tx_id}")
 def update_transaction(tx_id: int, body: dict = Body(...)):
-    conn = _connect()
-    try:
+    with connection() as conn:
         _get_or_404(conn, tx_id)
         tx, goal_id = _parse(conn, body)
         tx.id = tx_id
@@ -206,17 +191,12 @@ def update_transaction(tx_id: int, body: dict = Body(...)):
             repositories.TransactionRepository(conn).update(tx)
             _sync_goal(conn, tx_id, goal_id)
         return _to_dict(tx, goal_id)
-    finally:
-        conn.close()
 
 
 @router.delete("/{tx_id}", status_code=204)
 def delete_transaction(tx_id: int):
-    conn = _connect()
-    try:
+    with connection() as conn:
         _get_or_404(conn, tx_id)
         with db.transaction(conn):
             repositories.TransactionRepository(conn).delete(tx_id)
         return Response(status_code=204)
-    finally:
-        conn.close()

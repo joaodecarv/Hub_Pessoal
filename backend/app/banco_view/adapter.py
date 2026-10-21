@@ -7,7 +7,7 @@ from banco import db, repositories, services
 from banco.models import TransactionKind
 from banco.repositories import SortBy
 
-def _connect() -> sqlite3.Connection:
+def connect() -> sqlite3.Connection:
     """Open the SAME SQLite file Banco uses, writable, with foreign keys ON.
 
     Callers that write wrap the work in `banco.db.transaction(conn)` so a failed
@@ -22,7 +22,7 @@ def list_accounts() -> list[dict]:
     Banco do the SQL. We only translate its Account objects into dicts, because
     the next layer (the API) sends dicts out as JSON.
     """
-    conn=_connect()
+    conn=connect()
     try:
         accounts=repositories.AccountRepository(conn).list()
         return [
@@ -59,7 +59,7 @@ def monthly_trends(year: int, month: int, months: int = 6) -> list[dict]:
         y, m = _prev_year_month(y, m)
     walk.reverse()  # oldest first
 
-    conn = _connect()
+    conn = connect()
     try:
         report = services.ReportService(conn)
         out = []
@@ -74,7 +74,7 @@ def monthly_trends(year: int, month: int, months: int = 6) -> list[dict]:
 def fixed_vs_variable(year: int, month: int) -> dict:
     """Split the month's expenses into fixed vs variable (in cents). Banco resolves
     each transaction's fixedness from its per-transaction override or its category."""
-    conn = _connect()
+    conn = connect()
     try:
         fv = services.ReportService(conn).fixed_vs_variable(year, month)
         return {"fixed_cents": fv.fixed_cents, "variable_cents": fv.variable_cents}
@@ -85,7 +85,7 @@ def fixed_vs_variable(year: int, month: int) -> dict:
 def month_summary(year:int, month:int) -> dict:
     """Income/expense/savings/net for the given month AND the month before it.
     Returns cents (integers). Formatting to 'R$ 5.200,00' is the frontend's job."""
-    conn=_connect()
+    conn=connect()
     try:
         summary = services.ReportService(conn).monthly_summary(year, month)
         return {
@@ -103,7 +103,7 @@ def categories_with_totals(year:int, month:int)->list[dict]:
       Banco's category_breakdown defaults to EXPENSE and folds uncategorized
       transactions into one slice (category_id=None, name 'Sem categoria').
       We pass that through; the frontend can color the slices using `color`."""
-    conn=_connect()
+    conn=connect()
     try:
         slices = services.ReportService(conn).category_breakdown(
             year,
@@ -130,7 +130,7 @@ def account_balances() -> list[dict]:
 
     Banco stores no opening balance, so this only matches the real bank if the
     opening balance was entered as a transaction (see PLAN.md, "Future: desktop app")."""
-    conn = _connect()
+    conn = connect()
     try:
         tx_repo = repositories.TransactionRepository(conn)
         out = []
@@ -151,7 +151,7 @@ def goals_progress(year: int, month: int) -> list[dict]:
     month_contribution_cents is what the goal's linked transactions added in year/month
     (Banco has no service for this, so we sum goal_contributions ourselves)."""
     last_day = calendar.monthrange(year, month)[1]
-    conn = _connect()
+    conn = connect()
     try:
         contributed = dict(conn.execute(
             """SELECT gc.goal_id, SUM(t.amount_cents)
@@ -182,7 +182,7 @@ def goals_progress(year: int, month: int) -> list[dict]:
 def top_expenses(year: int, month: int, limit: int = 5) -> list[dict]:
     """The month's largest expense transactions, largest first."""
     last_day = calendar.monthrange(year, month)[1]
-    conn = _connect()
+    conn = connect()
     try:
         txs = repositories.TransactionRepository(conn).list(
             date_from=date(year, month, 1),
@@ -203,7 +203,7 @@ def top_expenses(year: int, month: int, limit: int = 5) -> list[dict]:
 def daily_expenses(year: int, month: int) -> list[dict]:
     """Expense total for every day of the month (zero-filled), for the month-to-date curve."""
     last_day = calendar.monthrange(year, month)[1]
-    conn = _connect()
+    conn = connect()
     try:
         txs = repositories.TransactionRepository(conn).list(
             date_from=date(year, month, 1),
@@ -231,7 +231,7 @@ def category_history(year: int, month: int, months: int = 6, kind: str = "expens
     had nothing), ordered by the last month's total, largest first. Uncategorized rows share
     one 'Sem categoria' entry, as in Banco's category_breakdown."""
     window = _month_window(year, month, months)
-    conn = _connect()
+    conn = connect()
     try:
         report = services.ReportService(conn)
         rows: dict = {}
