@@ -52,11 +52,11 @@ rm -rf "${BUILD}/dist" "${BUILD}/work" "${APPDIR}"
 
 # 4. AppDir -----------------------------------------------------------------
 echo "==> Assembling AppDir"
-mkdir -p "${APPDIR}/usr/bin" "${APPDIR}/usr/share/icons/hicolor/256x256/apps"
+mkdir -p "${APPDIR}/usr/bin" "${APPDIR}/usr/share/icons/hicolor/512x512/apps"
 cp -r "${BUILD}/dist/HubPessoal" "${APPDIR}/usr/bin/HubPessoal"
 install -m 0755 "${PKG}/AppRun" "${APPDIR}/AppRun"
-cp "${PKG}/icons/hubpessoal-256.png" "${APPDIR}/hubpessoal.png"
-cp "${PKG}/icons/hubpessoal-256.png" "${APPDIR}/usr/share/icons/hicolor/256x256/apps/hubpessoal.png"
+cp "${PKG}/icons/hubpessoal-512.png" "${APPDIR}/hubpessoal.png"
+cp "${PKG}/icons/hubpessoal-512.png" "${APPDIR}/usr/share/icons/hicolor/512x512/apps/hubpessoal.png"
 cat > "${APPDIR}/hubpessoal.desktop" <<DESKTOP
 [Desktop Entry]
 Type=Application

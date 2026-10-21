@@ -12,7 +12,7 @@ from pathlib import Path
 
 import shiboken6
 from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QObject, QUrl, Signal
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWebEngineCore import (
     QWebEnginePage,
@@ -142,6 +142,24 @@ class SchemeHandler(QWebEngineUrlSchemeHandler):
         self._pool.shutdown(wait=False, cancel_futures=True)
 
 
+class HubPage(QWebEnginePage):
+    """Keeps the app on hub://; web links (news sources) open in the default browser."""
+
+    def acceptNavigationRequest(self, url: QUrl, nav_type, is_main_frame: bool) -> bool:
+        if url.scheme() in ("http", "https"):
+            QDesktopServices.openUrl(url)
+            if getattr(self, "is_popup", False):  # throwaway page from createWindow
+                self.deleteLater()
+            return False
+        return super().acceptNavigationRequest(url, nav_type, is_main_frame)
+
+    def createWindow(self, _type) -> QWebEnginePage:
+        # target="_blank": Qt navigates the returned page, which hands the URL off above.
+        popup = HubPage(self.profile(), self)  # parented so Python doesn't collect it first
+        popup.is_popup = True
+        return popup
+
+
 def _notify_running_instance() -> bool:
     """True if another instance is running (and has been told to come to the front)."""
     socket = QLocalSocket()
@@ -200,7 +218,7 @@ def main() -> int:
     profile.scripts().insert(shim)
 
     window = QWebEngineView()
-    window.setPage(QWebEnginePage(profile, window))
+    window.setPage(HubPage(profile, window))
     window.setWindowTitle("Hub Pessoal")
     window.setWindowIcon(app_icon())
     window.resize(1280, 820)
