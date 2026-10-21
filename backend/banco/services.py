@@ -312,7 +312,8 @@ class ReportService:
                              AND t.date BETWEEN ? AND ?
                       ), 0)          AS spent_cents
                  FROM effective e
-                 JOIN categories c ON c.id = e.category_id""",
+                 JOIN categories c ON c.id = e.category_id
+                WHERE e.month_cents > 0""",
             (first_of_month, start, end),
         ).fetchall()
         progress = [
