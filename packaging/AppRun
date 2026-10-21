@@ -1,0 +1,4 @@
+#!/bin/bash
+# AppImage entry point: runs the PyInstaller-frozen app from the read-only mount.
+HERE="$(dirname "$(readlink -f "${0}")")"
+exec "${HERE}/usr/bin/HubPessoal/HubPessoal" "$@"
