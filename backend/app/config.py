@@ -14,4 +14,3 @@ HUB_DB_PATH = _DATA_HOME / "hubpessoal" / "hub.db"
 LEGACY_HUB_DB_PATH = Path(__file__).resolve().parent.parent / "hub.db"
 BANCO_DB_PATH = Path(os.getenv("BANCO_DB_PATH", str(_DATA_HOME / "banco" / "banco.db")))
 CONFIG_DIR = _CONFIG_HOME / "hubpessoal"
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
